@@ -1,6 +1,0 @@
-# ninja log v6
-2	3370	7416355880420211	CMakeFiles/CUDA_Raytracing.dir/main.cu.obj	1665915ea3f22cdb
-3195	4785	7416431175524654	CMakeFiles/CUDA_Raytracing.dir/cmake_device_link.obj	6e87476e6f001913
-4785	4866	7416431191418123	CUDA_Raytracing.exe	c8ef7d85ec34ebfa
-1	547	7416435838970073	build.ninja	d0104d63045d3e25
-2	3195	7416431143595564	CMakeFiles/CUDA_Raytracing.dir/source/private/main.cu.obj	ea101bf5c8fb6a47
