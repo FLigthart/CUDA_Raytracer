@@ -29,7 +29,7 @@ void check_cuda(cudaError_t result, char const* const function, const char* cons
 
 __device__ vec3 calculateBackgroundColor(const Ray& r)
 {
-    vec3 normalizedDirection = r.diredction().normalized();
+    vec3 normalizedDirection = r.direction().normalized();
     float t = (normalizedDirection.y() + 1.0f);
     return (1.0f - t) * vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
 }
