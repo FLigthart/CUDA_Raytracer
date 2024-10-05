@@ -14,16 +14,16 @@ public:
 
 	float radius;
 
-	__host__ __device__ Sphere() { radius = 1.0f; }
-	__host__ __device__ Sphere(float _radius)
+	__device__ Sphere() { radius = 1.0f; }
+	__device__ Sphere(float _radius)
 	{
 		radius = _radius;
 	}
 
-	__device__ bool inline checkIntersection(Ray& ray, Transform& transform, HitInformation& hitInformation) override;
+	__device__ bool inline checkIntersection(Ray& ray, Transform& transform, HitInformation& hitInformation) const override;
 };
 
-__device__ bool Sphere::checkIntersection(Ray& ray, Transform& transform, HitInformation& hitInformation)
+__device__ bool Sphere::checkIntersection(Ray& ray, Transform& transform, HitInformation& hitInformation) const
 {
 	// Calculate A, B and C for quadratic equation.
 	vec3 centerToOrigin = ray.origin() - transform.position;

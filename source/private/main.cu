@@ -9,23 +9,10 @@
 #include "../public/structs/vec3.h"
 #include "../public/ray.h"
 #include "../public/camera.h"
-#include "../public/sceneObjects/sceneObject.h"
 #include "../public/shapes/sphere.h"
-
-#define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ );
-
-
-void check_cuda(cudaError_t result, char const* const function, const char* const file, int const line)
-{
-    if (result)
-    {
-        std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at " <<
-            file << ":" << line << " '" << function << "' \n";
-
-        cudaDeviceReset();
-        exit(99);
-    }
-}
+#include "../public/structs/color4.h"
+#include "../public/exceptionChecker.h"
+#include "../public/scenes.h"
 
 __device__ vec3 calculateBackgroundColor(const Ray& r)
 {
@@ -34,7 +21,7 @@ __device__ vec3 calculateBackgroundColor(const Ray& r)
     return (1.0f - t) * vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
 }
 
-__global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCorner, vec3 horizontal, vec3 vertical, Camera* camera, VolumeObject* sphereObject)
+__global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCorner, vec3 horizontal, vec3 vertical, Camera* camera, Shape** d_shapeList)
 {
     int pixelStartX = threadIdx.x + blockIdx.x * blockDim.x;
     int pixelStartY = threadIdx.y + blockIdx.y * blockDim.y;
@@ -51,18 +38,18 @@ __global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCor
     HitInformation hitInformation;
 
     // ERROR IS HERE (LINE 54). SEE compute-sanitizer "D:\HomeProjects\CUDA_Raytracer\x64\Debug\CUDA_Raytracer.exe". 8 bytes read attempt. SHAPE IS INVALID
-    if (sphereObject)
+  //   if (sphereObject && sphereObject->meshComponent && sphereObject->meshComponent->d_shapeList)
+  //   {
+		// if (sphereObject->meshComponent->shape->checkIntersection(r, sphereObject->transform, hitInformation))
+		// {
+  //           fb[pixelIndex] = sphereObject->meshComponent->color.getRGB();
+		// }
+  //   }
+
+    Transform transform(vec3::one());
+    if (d_shapeList && d_shapeList[0]->checkIntersection(r, transform, hitInformation))
     {
-        if (sphereObject->meshComponent) 
-        {
-        	if (sphereObject->meshComponent->shape)
-	        {
-		        if (sphereObject->meshComponent->shape->checkIntersection(r, sphereObject->transform, hitInformation))
-		        {
-                    fb[pixelIndex] = sphereObject->meshComponent->color.getRGB();
-		        }
-	        }
-        }
+        fb[pixelIndex] = color4::red().getRGB();
     }
     else
     {
@@ -97,30 +84,12 @@ int main() {
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.
     dim3 threads(threadX, threadY); // A block of amount of threads per block.
 
-    Camera* camera_h = new Camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
+    Camera* d_camera;
+    checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&d_camera), sizeof(Camera)));
 
-    VolumeObject* sphereObject_h = new VolumeObject();
-    sphereObject_h->transform.position.z() = 3.0f;
-    sphereObject_h->meshComponent->color = color4::red();
-    sphereObject_h->meshComponent->SetShape(new Sphere(1.0f));
+    Shape** d_shapeList;
 
-    VolumeObject* sphereObject_d;
-    Camera* camera_d;
-
-    // Allocating managed memory for sphereObject_d and its components
-    checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&sphereObject_d), sizeof(VolumeObject)));
-    checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&sphereObject_d->meshComponent), sizeof(MeshComponent)));
-    checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&sphereObject_d->meshComponent->shape), sizeof(Sphere)));
-
-
-    // Now copying data from host to device
-    cudaMemcpy(sphereObject_d->meshComponent->shape, sphereObject_h->meshComponent->shape, sizeof(Sphere), cudaMemcpyHostToDevice);
-    cudaMemcpy(sphereObject_d->meshComponent, sphereObject_h->meshComponent, sizeof(MeshComponent), cudaMemcpyHostToDevice);
-    cudaMemcpy(sphereObject_d, sphereObject_h, sizeof(VolumeObject), cudaMemcpyHostToDevice);
-
-    // Camera memory management
-    checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&camera_d), sizeof(Camera)));
-    checkCudaErrors(cudaMemcpy(camera_d, camera_h, sizeof(Camera), cudaMemcpyHostToDevice));
+    simpleSphere(d_shapeList, d_camera);
 
     // Ensure synchronization
     checkCudaErrors(cudaDeviceSynchronize());
@@ -129,7 +98,7 @@ int main() {
         vec3(-screenWidth / 2, -screenHeight / 2, focalLength),
         vec3(screenWidth, 0.0, 0.0),
         vec3(0.0, screenHeight, 0.0),
-        camera_d, sphereObject_d);
+        d_camera, d_shapeList);
 
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
@@ -163,8 +132,6 @@ int main() {
     std::cerr << "Writing render to file finished.";
 
     checkCudaErrors(cudaFree(fb));
-	checkCudaErrors(cudaFree(sphereObject_d->meshComponent->shape));
-	checkCudaErrors(cudaFree(sphereObject_d->meshComponent));
-    checkCudaErrors(cudaFree(sphereObject_d));
-    checkCudaErrors(cudaFree(camera_d));
+    checkCudaErrors(cudaFree(d_camera));
+    checkCudaErrors(cudaFree(d_shapeList));
 }

@@ -40,7 +40,7 @@ public:
 	__host__ __device__ inline color4& operator/=(const float t);
 
     // Other Functions
-	__host__ __device__ vec3 getRGB() const;
+	__host__ __device__ vec3 getRGB();
 
     __host__ __device__ static color4 black() { return color4(0.0f, 0.0f, 0.0f, 1.0f); }
     __host__ __device__ static color4 white() { return color4(1.0f, 1.0f, 1.0f, 1.0f); }
@@ -154,7 +154,7 @@ __host__ __device__ inline color4& color4::operator/=(const float t) {
  *  Other Functions
  */
 
-__host__ __device__ inline vec3 color4::getRGB() const
+__host__ __device__ inline vec3 color4::getRGB()
 {
     return vec3(e[0], e[1], e[2]);
 }
