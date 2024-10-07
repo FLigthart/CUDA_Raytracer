@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
 #include "../structs/color4.h"
 #include "../structs/transform.h"
 #include "../structs/hitInformation.h"
@@ -33,12 +33,14 @@ __device__ bool inline ShapeList::checkIntersection(Ray& ray, HitInformation& hi
 {
 	HitInformation temp_info;
 	bool hitAnything = false;
+	float shortestDistance = INFINITY;
 
 	for (int i = 0; i < listSize; i++)
 	{
-		 if (list[i]->checkIntersection(ray, temp_info))
+		 if (list[i]->checkIntersection(ray, temp_info) && temp_info.distance < shortestDistance)
 		 {
 			 hitAnything = true;
+			 shortestDistance = temp_info.distance;
 			 hitInformation = temp_info;
 		 }
 	}

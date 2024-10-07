@@ -9,9 +9,10 @@
 
 struct HitInformation
 {
-	float hitDistance;
-	vec3 hitPosition;
-	color4 hitColor;
+	float distance;
+	vec3 normal;
+	vec3 position;
+	color4 color;
 
-	__host__ __device__ HitInformation() { hitDistance = 0.0f; hitPosition = vec3::zero(); hitColor = color4::black(); }
+	__host__ __device__ HitInformation() { distance = INFINITY; position = vec3::zero(); color = color4::black(); normal = vec3::zero(); }
 };

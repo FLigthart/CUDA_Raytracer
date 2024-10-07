@@ -27,8 +27,8 @@ __global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_cam
         d_shapeList[0] = new Sphere(1.0f);
         d_shapeList[0]->transform.position = vec3(0.0f, 0.0f, 3.0f);
 
-        d_shapeList[1] = new Sphere(0.5f);
-        d_shapeList[1]->transform.position = vec3(7.0f, 0.5f, 4.0f);
+        d_shapeList[1] = new Sphere(2.0f);
+        d_shapeList[1]->transform.position = vec3(2.5f, 0.0f, 4.0f);
         d_shapeList[1]->color = color4::green();
 
         *d_world = new ShapeList(d_shapeList, 2);
@@ -54,11 +54,10 @@ __global__ void render(vec3* fb, Camera** camera, Shape** world)
 
     HitInformation hitInformation;
 
-    // ERROR IS HERE (LINE 54). SEE compute-sanitizer "D:\HomeProjects\CUDA_Raytracer\x64\Debug\CUDA_Raytracer.exe". 8 bytes read attempt. SHAPE IS INVALID
-
     if ((*world)->checkIntersection(r, hitInformation))
     {
-        fb[pixelIndex] = hitInformation.hitColor.getRGB();
+        // fb[pixelIndex] = hitInformation.hitColor.getRGB();
+        fb[pixelIndex] = 0.5f * vec3(hitInformation.normal.x() + 1.0f, hitInformation.normal.y() + 1.0f, hitInformation.normal.z() + 1.0f); //Display normals color
     }
     else
     {

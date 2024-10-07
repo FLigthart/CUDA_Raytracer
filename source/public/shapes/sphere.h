@@ -51,11 +51,13 @@ __device__ bool Sphere::checkIntersection(Ray& ray, HitInformation& hitInformati
 
 	// If hitDistanceOne is smaller or equal to hitDistanceTwo, hitPointOne is the first hit point of the ray with the sphere. Otherwise, it is hitDistanceTwo.
 	// Use the closest one to calculate hitPointOne, since the camera can see that one.
-	hitInformation.hitDistance = (hitDistanceOne <= hitDistanceTwo) ? hitDistanceOne : hitDistanceTwo;
+	hitInformation.distance = (hitDistanceOne <= hitDistanceTwo) ? hitDistanceTwo : hitDistanceOne;
 
-	hitInformation.hitPosition = ray.origin() + ray.direction() * hitInformation.hitDistance;
+	hitInformation.position = ray.origin() + ray.direction() * hitInformation.distance;
 
-	hitInformation.hitColor = color;
+	hitInformation.color = color;
+
+	hitInformation.normal = (hitInformation.position - transform.position) / radius;
 
 	return true;
 }
