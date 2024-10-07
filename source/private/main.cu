@@ -21,7 +21,7 @@ __device__ vec3 calculateBackgroundColor(const Ray& r)
     return (1.0f - t) * vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
 }
 
-__global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCorner, vec3 horizontal, vec3 vertical, Camera* camera, Shape** d_shapeList)
+__global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCorner, vec3 horizontal, vec3 vertical, Scene* scene)
 {
     int pixelStartX = threadIdx.x + blockIdx.x * blockDim.x;
     int pixelStartY = threadIdx.y + blockIdx.y * blockDim.y;
@@ -33,23 +33,16 @@ __global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCor
     float u = static_cast<float>(pixelStartX) / static_cast<float>(maxPixelX);
     float v = static_cast<float>(pixelStartY) / static_cast<float>(maxPixelY);
 
-    Ray r(camera->position(), lowerLeftCorner + u * horizontal + v * vertical);
+    Ray r(scene->camera->position(), lowerLeftCorner + u * horizontal + v * vertical);
 
     HitInformation hitInformation;
 
     // ERROR IS HERE (LINE 54). SEE compute-sanitizer "D:\HomeProjects\CUDA_Raytracer\x64\Debug\CUDA_Raytracer.exe". 8 bytes read attempt. SHAPE IS INVALID
-  //   if (sphereObject && sphereObject->meshComponent && sphereObject->meshComponent->d_shapeList)
-  //   {
-		// if (sphereObject->meshComponent->shape->checkIntersection(r, sphereObject->transform, hitInformation))
-		// {
-  //           fb[pixelIndex] = sphereObject->meshComponent->color.getRGB();
-		// }
-  //   }
 
     Transform transform(vec3::one());
-    if (d_shapeList && d_shapeList[0]->checkIntersection(r, transform, hitInformation))
+    if (scene->objectList && scene->objectList[0]->meshComponent->shape->checkIntersection(r, transform, hitInformation))
     {
-        fb[pixelIndex] = color4::red().getRGB();
+        fb[pixelIndex] = scene->objectList[0]->meshComponent->color.getRGB();
     }
     else
     {
@@ -84,12 +77,9 @@ int main() {
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.
     dim3 threads(threadX, threadY); // A block of amount of threads per block.
 
-    Camera* d_camera;
-    checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&d_camera), sizeof(Camera)));
+    Scene* d_scene = new Scene();
 
-    Shape** d_shapeList;
-
-    simpleSphere(d_shapeList, d_camera);
+    simpleSphere(d_scene);
 
     // Ensure synchronization
     checkCudaErrors(cudaDeviceSynchronize());
@@ -97,8 +87,7 @@ int main() {
     render <<<blocks, threads>>> (fb, pX, pY,
         vec3(-screenWidth / 2, -screenHeight / 2, focalLength),
         vec3(screenWidth, 0.0, 0.0),
-        vec3(0.0, screenHeight, 0.0),
-        d_camera, d_shapeList);
+        vec3(0.0, screenHeight, 0.0), d_scene);
 
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
@@ -132,6 +121,5 @@ int main() {
     std::cerr << "Writing render to file finished.";
 
     checkCudaErrors(cudaFree(fb));
-    checkCudaErrors(cudaFree(d_camera));
-    checkCudaErrors(cudaFree(d_shapeList));
+    checkCudaErrors(cudaFree(d_scene));
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "camera.h"
-#include "shapes/shape.h"
+#include "scene.h"
 
-void simpleSphere(Shape**& d_shapeList, Camera *&d_camera);
+void simpleSphere(Scene*& scene);
