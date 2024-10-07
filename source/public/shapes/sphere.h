@@ -9,21 +9,20 @@ class Sphere : public Shape
 
 public:
 
-	// Position is declared through SceneObject Transform.
-	// TODO: add scale and rotation support.
-
 	float radius;
 
-	__device__ Sphere() { radius = 1.0f; }
-	__device__ Sphere(float _radius)
+	__host__ __device__ Sphere() { radius = 1.0f; transform = Transform(); color = color4::red(); }
+	__host__ __device__ Sphere(float _radius)
 	{
 		radius = _radius;
+		transform = Transform();
+		color = color4::red();
 	}
 
-	__device__ bool inline checkIntersection(Ray& ray, Transform& transform, HitInformation& hitInformation) const override;
+	__device__ bool inline checkIntersection(Ray& ray, HitInformation& hitInformation) const override;
 };
 
-__device__ bool Sphere::checkIntersection(Ray& ray, Transform& transform, HitInformation& hitInformation) const
+__device__ bool Sphere::checkIntersection(Ray& ray, HitInformation& hitInformation) const
 {
 	// Calculate A, B and C for quadratic equation.
 	vec3 centerToOrigin = ray.origin() - transform.position;
@@ -55,6 +54,8 @@ __device__ bool Sphere::checkIntersection(Ray& ray, Transform& transform, HitInf
 	hitInformation.hitDistance = (hitDistanceOne <= hitDistanceTwo) ? hitDistanceOne : hitDistanceTwo;
 
 	hitInformation.hitPosition = ray.origin() + ray.direction() * hitInformation.hitDistance;
+
+	hitInformation.hitColor = color;
 
 	return true;
 }

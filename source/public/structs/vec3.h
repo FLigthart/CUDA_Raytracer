@@ -22,11 +22,6 @@ public:
     __host__ __device__ inline float y() const { return e[1]; }
     __host__ __device__ inline float z() const { return e[2]; }
 
-    // Setters
-    __host__ __device__ inline float& x() { return e[0]; }
-    __host__ __device__ inline float& y() { return e[1]; }
-    __host__ __device__ inline float& z() { return e[2]; }
-
     __host__ __device__ inline const vec3& operator+() const { return *this; }
     __host__ __device__ inline vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
     __host__ __device__ inline float operator[](int i) const { return e[i]; }

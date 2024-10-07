@@ -12,7 +12,6 @@
 #include "../public/shapes/sphere.h"
 #include "../public/structs/color4.h"
 #include "../public/exceptionChecker.h"
-#include "../public/scenes.h"
 
 __device__ vec3 calculateBackgroundColor(const Ray& r)
 {
@@ -21,28 +20,45 @@ __device__ vec3 calculateBackgroundColor(const Ray& r)
     return (1.0f - t) * vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
 }
 
-__global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCorner, vec3 horizontal, vec3 vertical, Scene* scene)
+__global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_camera, float screenHeight, float focalLength, float fov, int pX, int pY)
+{
+	if (threadIdx.x == 0 && blockIdx.x == 0)
+	{
+        d_shapeList[0] = new Sphere(1.0f);
+        d_shapeList[0]->transform.position = vec3(0.0f, 0.0f, 3.0f);
+
+        d_shapeList[1] = new Sphere(0.5f);
+        d_shapeList[1]->transform.position = vec3(7.0f, 0.5f, 4.0f);
+        d_shapeList[1]->color = color4::green();
+
+        *d_world = new ShapeList(d_shapeList, 2);
+
+        *d_camera = new Camera(vec3(0.0f, 0.0f, -3.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f),
+            screenHeight, focalLength, fov, pX, pY);
+	}
+}
+
+__global__ void render(vec3* fb, Camera** camera, Shape** world)
 {
     int pixelStartX = threadIdx.x + blockIdx.x * blockDim.x;
     int pixelStartY = threadIdx.y + blockIdx.y * blockDim.y;
 
-    if ((pixelStartX >= maxPixelX) || (pixelStartY >= maxPixelY)) return;   // Pixels that will be rendered are out of screen.
+    if ((pixelStartX >= (*camera)->sX) || (pixelStartY >= (*camera)->sY)) return;   // Pixels that will be rendered are out of screen.
 
-    int pixelIndex = pixelStartY * maxPixelX + pixelStartX; // Index of pixel in array.
+    int pixelIndex = pixelStartY * (*camera)->sX + pixelStartX; // Index of pixel in array.
 
-    float u = static_cast<float>(pixelStartX) / static_cast<float>(maxPixelX);
-    float v = static_cast<float>(pixelStartY) / static_cast<float>(maxPixelY);
+    float u = static_cast<float>(pixelStartX) / static_cast<float>((*camera)->sX);
+    float v = static_cast<float>(pixelStartY) / static_cast<float>((*camera)->sY);
 
-    Ray r(scene->camera->position(), lowerLeftCorner + u * horizontal + v * vertical);
+    Ray r = (*camera)->makeRay(u, v);
 
     HitInformation hitInformation;
 
     // ERROR IS HERE (LINE 54). SEE compute-sanitizer "D:\HomeProjects\CUDA_Raytracer\x64\Debug\CUDA_Raytracer.exe". 8 bytes read attempt. SHAPE IS INVALID
 
-    Transform transform(vec3::one());
-    if (scene->objectList && scene->objectList[0]->meshComponent->shape->checkIntersection(r, transform, hitInformation))
+    if ((*world)->checkIntersection(r, hitInformation))
     {
-        fb[pixelIndex] = scene->objectList[0]->meshComponent->color.getRGB();
+        fb[pixelIndex] = hitInformation.hitColor.getRGB();
     }
     else
     {
@@ -50,16 +66,25 @@ __global__ void render(vec3* fb, int maxPixelX, int maxPixelY, vec3 lowerLeftCor
     }
 }
 
+__global__ void freeWorld(Shape** shapeList, Shape** world, Camera** camera)
+{
+	for (int i = 0; i < 2; i++)
+	{
+        delete shapeList[i];
+	}
+
+    delete *world;
+    delete *camera;
+}
+
 int main() {
 
     int pX = 1920;
     int pY = 1080;
 
-    float aspectRatioY = static_cast<float>(1080) / static_cast<float>(1920);
-
     float screenHeight = 2.0f;
-    float screenWidth = screenHeight / aspectRatioY;
     float focalLength = 1.0f;
+    float fov = 20.0f; //No effect yet
 
     // Divide threads into blocks to be sent to the gpu.
     int threadX = 12;
@@ -67,27 +92,33 @@ int main() {
 
     std::cerr << "Rendering a " << pX << " x " << pY << " image " << "in " << threadX << " x " << threadY << " blocks.\n";
 
+    vec3* fb;
+
     int pixelCount = pX * pY;
     size_t memorySize = pixelCount * sizeof(vec3); // One vec3 (rgb) per pixel.
-
-    vec3* fb;
     checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&fb), memorySize));
+
+    Camera** d_camera;
+    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera*)));
+
+    int shapeListSize = 2;
+    Shape** d_shapeList;
+    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), shapeListSize * sizeof(Shape*)));
+
+    Shape** d_world;
+    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_world), sizeof(Shape*)));
 
     // Render a buffer
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.
     dim3 threads(threadX, threadY); // A block of amount of threads per block.
 
-    Scene* d_scene = new Scene();
-
-    simpleSphere(d_scene);
+    createWorld<<<1, 1>>>(d_shapeList, d_world, d_camera, screenHeight, focalLength, fov, pX, pY);
 
     // Ensure synchronization
+    checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
-    render <<<blocks, threads>>> (fb, pX, pY,
-        vec3(-screenWidth / 2, -screenHeight / 2, focalLength),
-        vec3(screenWidth, 0.0, 0.0),
-        vec3(0.0, screenHeight, 0.0), d_scene);
+    render <<<blocks, threads>>> (fb, d_camera, d_world);
 
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
@@ -96,6 +127,7 @@ int main() {
 
     // Open the file
     std::ofstream ofs("image.ppm", std::ios::out | std::ios::trunc | std::ios::binary);  // Empty file before writing
+
 
     // Output an image
     ofs << "P3\n" << pX << " " << pY << "\n255\n";
@@ -120,6 +152,13 @@ int main() {
 
     std::cerr << "Writing render to file finished.";
 
+    checkCudaErrors(cudaDeviceSynchronize());
+    freeWorld<<<1, 1 >>>(d_shapeList, d_world, d_camera);
+    checkCudaErrors(cudaGetLastError());
+
+    checkCudaErrors(cudaFree(d_camera));
+    checkCudaErrors(cudaFree(d_shapeList));
     checkCudaErrors(cudaFree(fb));
-    checkCudaErrors(cudaFree(d_scene));
+
+    cudaDeviceReset();
 }
