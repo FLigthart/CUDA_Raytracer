@@ -3,20 +3,23 @@
 
 #include "structs/vec3.h"
 
+enum AAMethod : std::uint8_t
+{ None, MSAA4, MSAA8, MSAA16 };
+
 class Camera
 {
 
 public:
 
     Camera() = default;
-    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec3& direction, float screenHeight, float focalLength, float _fov, int pX, int pY)
+    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec3& direction, float screenHeight, float focalLength, float _fov, int pX, int pY, AAMethod _aaMethod)
     {
 	    _position = position;
     	_up = up;
     	_direction = direction;
 
-        sX = pX;
-        sY = pY;
+        screenX = pX;
+        screenY = pY;
 
         float aspectRatio = static_cast<float>(pX) / static_cast<float>(pY);
         float screenWidth = screenHeight * aspectRatio;
@@ -26,11 +29,9 @@ public:
         vertical = vec3(0.0f, screenHeight, 0.0f);
 
         fov = _fov;
-    }
 
-    __host__ __device__ vec3 position() const { return _position; }
-    __host__ __device__ vec3 direction() const { return _direction; }
-    __host__ __device__ vec3 up() const { return _up; }
+        aaMethod = _aaMethod;
+    }
 
     vec3 _position;
     vec3 _up;
@@ -40,12 +41,18 @@ public:
     vec3 horizontal;
     vec3 vertical;
 
-    int sX;
-    int sY;
+    int screenX;
+    int screenY;
 
     float fov;
 
+    AAMethod aaMethod;
+
     __device__ Ray makeRay(float u, float v);
+
+    __host__ __device__ vec3 position() const { return _position; }
+    __host__ __device__ vec3 direction() const { return _direction; }
+    __host__ __device__ vec3 up() const { return _up; }
 };
 
 __device__ inline Ray Camera::makeRay(float u, float v)

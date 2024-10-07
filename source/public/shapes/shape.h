@@ -4,6 +4,7 @@
 #include "../structs/color4.h"
 #include "../structs/transform.h"
 #include "../structs/hitInformation.h"
+
 class Ray;
 
 class Shape

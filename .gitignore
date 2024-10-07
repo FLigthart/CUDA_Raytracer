@@ -8,6 +8,7 @@
 *.nvuser
 *.filters
 *.user
+*.ppm
 
 /.vs
 /.idea
