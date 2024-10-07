@@ -35,7 +35,7 @@ __global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_cam
         *d_world = new ShapeList(d_shapeList, 2);
 
         *d_camera = new Camera(vec3(0.0f, 0.0f, -3.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f),
-            screenHeight, focalLength, fov, pX, pY, AAMethod::None);
+            screenHeight, focalLength, fov, pX, pY, AAMethod::MSAA16);
 	}
 }
 
@@ -142,8 +142,8 @@ __global__ void freeWorld(Shape** shapeList, Shape** world, Camera** camera)
 
 int main()
 {
-    int pX = 400; //1920
-    int pY = 235; //1080
+    int pX = 1920;
+    int pY = 1080;
 
     float screenHeight = 2.0f;
     float focalLength = 1.0f;
