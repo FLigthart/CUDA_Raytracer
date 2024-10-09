@@ -13,6 +13,8 @@
 #include "../public/structs/color4.h"
 #include "../public/exceptionChecker.h"
 
+//WARNING: Generate Relocatable Device Code = Yes in CUDA C++ Settings. Otherwise camera.h and camera.cu won't compile. Might cause weird behaviour.
+
 __device__ color4 calculateBackgroundColor(const Ray& r)
 {
     vec3 normalizedDirection = r.direction().normalized();
@@ -29,7 +31,7 @@ __global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_cam
         d_shapeList[0]->transform.position = vec3(0.0f, 0.0f, 3.0f);
 
         d_shapeList[1] = new Sphere(2.0f);
-        d_shapeList[1]->transform.position = vec3(2.5f, 0.0f, 4.0f);
+        d_shapeList[1]->transform.position = vec3(15.0f, 0.0f, 4.0f);
         d_shapeList[1]->color = color4::green();
 
         *d_world = new ShapeList(d_shapeList, 2);
@@ -146,7 +148,7 @@ int main()
     int pY = 1080;
 
     float screenHeight = 2.0f;
-    float focalLength = 1.0f;
+    float focalLength = 0.5f;
     float fov = 20.0f; //No effect yet
 
     // Divide threads into blocks to be sent to the gpu.
