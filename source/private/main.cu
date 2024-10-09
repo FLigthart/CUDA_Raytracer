@@ -2,6 +2,8 @@
 #include <fstream>
 
 #include <cuda_runtime_api.h>
+#include <math_constants.h>
+
 #include "device_launch_parameters.h"
 #include "cuda_runtime.h"
 #include "curand_kernel.h"
@@ -23,21 +25,22 @@ __device__ color4 calculateBackgroundColor(const Ray& r)
     return color4(rgb.x(), rgb.y(), rgb.z(), 1.0f);
 }
 
-__global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_camera, float screenHeight, float focalLength, float fov, int pX, int pY)
+__global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_camera, float focalLength, float fov, int pX, int pY)
 {
 	if (threadIdx.x == 0 && blockIdx.x == 0)
 	{
-        d_shapeList[0] = new Sphere(1.0f);
-        d_shapeList[0]->transform.position = vec3(0.0f, 0.0f, 3.0f);
+        float R = std::cos(CUDART_PI_F / 4.0f);
 
-        d_shapeList[1] = new Sphere(2.0f);
-        d_shapeList[1]->transform.position = vec3(15.0f, 0.0f, 4.0f);
+        d_shapeList[0] = new Sphere(R);
+        d_shapeList[0]->transform.position = vec3(-R, 0.0f, 1.0f);
+
+        d_shapeList[1] = new Sphere(R);
+        d_shapeList[1]->transform.position = vec3(R, 0.0f, 1.0f);
         d_shapeList[1]->color = color4::green();
 
         *d_world = new ShapeList(d_shapeList, 2);
 
-        *d_camera = new Camera(vec3(0.0f, 0.0f, -3.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f),
-            screenHeight, focalLength, fov, pX, pY, AAMethod::MSAA16);
+        *d_camera = new Camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), focalLength, fov, pX, pY, AAMethod::MSAA16);
 	}
 }
 
@@ -147,9 +150,8 @@ int main()
     int pX = 1920;
     int pY = 1080;
 
-    float screenHeight = 2.0f;
-    float focalLength = 0.5f;
-    float fov = 20.0f; //No effect yet
+    float focalLength = 1.0f;
+    float fov = 90.0f; //No effect yet
 
     // Divide threads into blocks to be sent to the gpu.
     int threadX = 12;
@@ -173,7 +175,7 @@ int main()
     Shape** d_world;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_world), sizeof(Shape*)));
 
-    createWorld<<<1, 1>>>(d_shapeList, d_world, d_camera, screenHeight, focalLength, fov, pX, pY);
+    createWorld<<<1, 1>>>(d_shapeList, d_world, d_camera, focalLength, fov, pX, pY);
 
     // Render a buffer
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.

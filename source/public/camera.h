@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef CAMERA_H
 #define CAMERA_H
 
@@ -13,7 +15,7 @@ class Camera
 public:
 
     Camera() = default;
-    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec3& direction, float screenHeight, float _focalLength, float _fov, int pX, int pY, AAMethod _aaMethod)
+    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec3& direction, float _focalLength, float _fov, int pX, int pY, AAMethod _aaMethod)
     {
 	    _position = position;
     	_up = up;
@@ -24,13 +26,11 @@ public:
 
         focalLength = _focalLength;
 
-        screenVertical = vec3(0.0f, screenHeight, 0.0f);
-
-        fov = validateFOV(_fov);
+        fov = validateFOV(_fov); // Vertical fov
 
         aaMethod = _aaMethod;
 
-        initialize();
+        initialize(); // Calculate other member variables at the end of the constructor.
     }
 
     int screenX;
