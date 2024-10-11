@@ -1,8 +1,9 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 
 #include <cuda_runtime_api.h>
-#include <math_constants.h>
 
 #include "device_launch_parameters.h"
 #include "cuda_runtime.h"
@@ -14,33 +15,38 @@
 #include "../public/shapes/sphere.h"
 #include "../public/structs/color4.h"
 #include "../public/exceptionChecker.h"
+#include "../public/materials/material.h"
+#include "../public/materials/metal.h"
 
 //WARNING: Generate Relocatable Device Code = Yes in CUDA C++ Settings. Otherwise camera.h and camera.cu won't compile. Might cause weird behaviour.
 
 __device__ color4 calculateBackgroundColor(const Ray& r)
 {
     vec3 normalizedDirection = r.direction().normalized();
-    float t = (normalizedDirection.y() + 1.0f);
-    vec3 rgb = (1.0f - t) * vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
+    float t = 0.5f * (normalizedDirection.y() + 1.0f);
+    vec3 rgb = (1.0f - t) * vec3::one() + t * vec3(0.5f, 0.7f, 1.0f);
     return color4(rgb.x(), rgb.y(), rgb.z(), 1.0f);
 }
 
-__global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_camera, float focalLength, float fov, int pX, int pY)
+__global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY)
 {
 	if (threadIdx.x == 0 && blockIdx.x == 0)
 	{
-        float R = std::cos(CUDART_PI_F / 4.0f);
+        d_shapeList[0] = new Sphere(1.2f, new lambertian(color4(0.1f, 0.2f, 0.5f, 1.0f)));
+        d_shapeList[0]->transform.position = vec3(0.0f, 1.0f, 2.0f);
 
-        d_shapeList[0] = new Sphere(R);
-        d_shapeList[0]->transform.position = vec3(-R, 0.0f, 1.0f);
+        d_shapeList[1] = new Sphere(20.0f, new lambertian(color4(0.8f, 0.8f, 0.0f, 1.0f)));
+        d_shapeList[1]->transform.position = vec3(0.0f, -20.0f, 5.0f);
 
-        d_shapeList[1] = new Sphere(R);
-        d_shapeList[1]->transform.position = vec3(R, 0.0f, 1.0f);
-        d_shapeList[1]->color = color4::green();
+        d_shapeList[2] = new Sphere(0.75f, lambertian::white());
+        d_shapeList[2]->transform.position = vec3(2.0f, 0.5f, 2.0f);
 
-        *d_world = new ShapeList(d_shapeList, 2);
+        d_shapeList[3] = new Sphere(0.75f, new metal(color4(0.8f, 0.6f, 0.2f, 1.0f)));
+        d_shapeList[3]->transform.position = vec3(-2.0f, 0.5f, 2.0f);
 
-        *d_camera = new Camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), focalLength, fov, pX, pY, AAMethod::MSAA16);
+        *d_world = new ShapeList(d_shapeList, 4);
+
+        *d_camera = new Camera(vec3(-2.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 80.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000);
 	}
 }
 
@@ -57,51 +63,64 @@ __global__ void renderInitialize(int sX, int sY, curandState* randomState)  // I
     curand_init(2024, pixelIndex, 0, &randomState[pixelIndex]);
 }
 
-__device__ vec3 renderNoAA(Shape** world, Camera** camera, int pixelStartX, int pixelStartY)
+__device__ color4 colorPerSample(Ray& r, Shape** world, curandState* localRandomState)
 {
-    HitInformation hitInformation;
+    Ray currentRay = r;
+    color4 currentAttenuation = color4::white();   // This decreases for each bounce. Making each bounce have less impact.
 
-    float u = static_cast<float>(pixelStartX) / static_cast<float>((*camera)->screenX);
-    float v = static_cast<float>(pixelStartY) / static_cast<float>((*camera)->screenY);
-
-    Ray r = (*camera)->makeRay(u, v);
-
-    if ((*world)->checkIntersection(r, hitInformation))
-    {
-        return hitInformation.color.getRGB();
-        //fb[pixelIndex] = 0.5f * vec3(hitInformation.normal.x() + 1.0f, hitInformation.normal.y() + 1.0f, hitInformation.normal.z() + 1.0f); //Display normals color
-    }
-    else
-    {
-        return calculateBackgroundColor(r).getRGB();
-    }
-}
-
-__device__ vec3 renderAA(Shape** world, Camera** camera, int pixelStartX, int pixelStartY, curandState localRandomState, int sampleSize)
-{
-    color4 color = color4(0.0f, 0.0f, 0.0f, 1.0f);
-
-    for (int i = 0; i < sampleSize; i++)
+    for (int i = 0; i < 50; i++) // For each pixel, cast 50 random rays.
     {
         HitInformation hitInformation;
 
-        float u = static_cast<float>(pixelStartX + curand_uniform(&localRandomState)) / static_cast<float>((*camera)->screenX);
-        float v = static_cast<float>(pixelStartY + curand_uniform(&localRandomState)) / static_cast<float>((*camera)->screenY);
-
-        Ray r = (*camera)->makeRay(u, v);
-
-        if ((*world)->checkIntersection(r, hitInformation))
+        if ((*world)->checkIntersection(currentRay, interval(0.01f, INFINITY), hitInformation))
         {
-            color += hitInformation.color;
-            // color += 0.5f * vec3(hitInformation.normal.x() + 1.0f, hitInformation.normal.y() + 1.0f, hitInformation.normal.z() + 1.0f); //Display normals color
+            Ray scattered;
+            color4 attenuation; // attenuation for each object the ray bounces to.
+
+            if (hitInformation.mat->scatter(currentRay, hitInformation, attenuation, localRandomState, currentRay))
+            {
+                currentAttenuation *= attenuation;
+            }
+            else
+            {
+                return color4::black();
+            }
+            
+            //return 0.5f * color4(hitInformation.normal.x() + 1.0f, hitInformation.normal.y() + 1.0f, hitInformation.normal.z() + 1.0f, 1.0f); //Display normals color
         }
         else
         {
-            color += calculateBackgroundColor(r);
+            color4 color = currentAttenuation * calculateBackgroundColor(currentRay);
+            return color;
         }
     }
 
-    return (color.getRGB() / static_cast<float>(sampleSize));
+    return color4::black(); // 0 0 0 1 values
+}
+
+__device__ vec3 colorForPixel(Shape** world, Camera** camera, int pixelStartX, int pixelStartY, curandState* localRandomState, int sampleSize)
+{
+    color4 color = color4(0.0f, 0.0f, 0.0f, 1.0f);
+
+
+    for (int i = 0; i < sampleSize; i++) // For each path tracing sample
+    {
+        float u = static_cast<float>(pixelStartX + curand_uniform(localRandomState)) / static_cast<float>((*camera)->screenX);
+        float v = static_cast<float>(pixelStartY + curand_uniform(localRandomState)) / static_cast<float>((*camera)->screenY);
+
+        Ray r = (*camera)->makeRay(u, v);
+
+        color += colorPerSample(r, world, localRandomState);
+    }
+
+    vec3 rgbValues = color.getRGB() /= static_cast<float>(sampleSize);
+
+    // Perform square root on r, g and b
+    rgbValues.e[0] = sqrt(rgbValues.x());
+    rgbValues.e[1] = sqrt(rgbValues.y());
+    rgbValues.e[2] = sqrt(rgbValues.z());
+
+    return rgbValues;
 }
 
 __global__ void render(vec3* fb, Camera** camera, Shape** world, curandState* randomState)
@@ -115,23 +134,37 @@ __global__ void render(vec3* fb, Camera** camera, Shape** world, curandState* ra
 
     curandState localRandomState = randomState[pixelIndex];
 
+    int sampleSize; // Amount of AA samples
+
     switch ((*camera)->aaMethod)
     {
-	    case MSAA4:
-            fb[pixelIndex] = renderAA(world, camera, pixelStartX, pixelStartY, localRandomState, 4);
+	    case MSAA10:
+            sampleSize = 4;
             break;
 
-	    case MSAA8:
-            fb[pixelIndex] = renderAA(world, camera, pixelStartX, pixelStartY, localRandomState, 8);
+	    case MSAA20:
+            sampleSize = 20;
             break;
 
-	    case MSAA16:
-            fb[pixelIndex] = renderAA(world, camera, pixelStartX, pixelStartY, localRandomState, 16);
+        case MSAA50:
+            sampleSize = 50;
             break;
+
+	    case MSAA100:
+            sampleSize = 100;
+            break;
+
+	    case MSAA1000:
+	        sampleSize = 1000;
+	        break;
 
 	    default: // No AA/Non-added methods
-            fb[pixelIndex] = renderNoAA(world, camera, pixelStartX, pixelStartY);
+            sampleSize = 1;
     }
+
+    fb[pixelIndex] = colorForPixel(world, camera, pixelStartX, pixelStartY, &localRandomState, sampleSize);
+
+    randomState[pixelIndex] = localRandomState; // Make sure randomState is still set properly
 }
 
 __global__ void freeWorld(Shape** shapeList, Shape** world, Camera** camera)
@@ -150,9 +183,6 @@ int main()
     int pX = 1920;
     int pY = 1080;
 
-    float focalLength = 1.0f;
-    float fov = 90.0f; //No effect yet
-
     // Divide threads into blocks to be sent to the gpu.
     int threadX = 12;
     int threadY = 12;
@@ -168,14 +198,14 @@ int main()
     Camera** d_camera;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera*)));
 
-    int shapeListSize = 2;
+    int shapeListSize = 4;
     Shape** d_shapeList;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), shapeListSize * sizeof(Shape*)));
 
     Shape** d_world;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_world), sizeof(Shape*)));
 
-    createWorld<<<1, 1>>>(d_shapeList, d_world, d_camera, focalLength, fov, pX, pY);
+    createWorld<<<1, 1>>>(d_shapeList, d_world, d_camera, pX, pY);
 
     // Render a buffer
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.
@@ -194,12 +224,19 @@ int main()
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
+    // Start counting ms here.
+    clock_t start, stop;
+    start = clock();
+
     render<<<blocks, threads>>>(fb, d_camera, d_world, d_randomState);
 
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
-    std::cerr << "Image rendered.\n";
+    stop = clock();
+    double timer_seconds = static_cast<double>(stop - start);
+
+    std::cerr << "Image rendered in " << timer_seconds << " ms.\n";
 
     // Open the file
     std::ofstream ofs("image.ppm", std::ios::out | std::ios::trunc | std::ios::binary);  // Empty file before writing

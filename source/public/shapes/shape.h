@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cmath>
-#include "../structs/color4.h"
+
+#include "../materials/lambertian.h"
 #include "../structs/transform.h"
 #include "../structs/hitInformation.h"
+#include "../structs/interval.h"
 
 class Ray;
 
@@ -13,9 +15,8 @@ class Shape
 public:
 
 	Transform transform;
-	color4 color;
 
-	__device__ virtual bool checkIntersection(Ray& ray, HitInformation& hitInformation) const = 0;
+	__device__ virtual bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const = 0;
 };
 
 class ShapeList : public Shape
@@ -27,10 +28,10 @@ public:
 	Shape** list;
 	int listSize;
 
-	__device__ virtual bool checkIntersection(Ray& ray, HitInformation& hitInformation) const override;
+	__device__ virtual bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const override;
 };
 
-__device__ bool inline ShapeList::checkIntersection(Ray& ray, HitInformation& hitInformation) const
+__device__ bool inline ShapeList::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const
 {
 	HitInformation temp_info;
 	bool hitAnything = false;
@@ -38,7 +39,7 @@ __device__ bool inline ShapeList::checkIntersection(Ray& ray, HitInformation& hi
 
 	for (int i = 0; i < listSize; i++)
 	{
-		 if (list[i]->checkIntersection(ray, temp_info) && temp_info.distance < shortestDistance)
+		 if (list[i]->checkIntersection(ray, hitRange, temp_info) && temp_info.distance < shortestDistance)
 		 {
 			 hitAnything = true;
 			 shortestDistance = temp_info.distance;
@@ -48,3 +49,5 @@ __device__ bool inline ShapeList::checkIntersection(Ray& ray, HitInformation& hi
 
 	return hitAnything;
 }
+
+

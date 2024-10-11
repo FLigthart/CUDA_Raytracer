@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef TRANSFORM_H
+#define TRANSFORM_H
+
 #include "vec3.h"
 
 struct Transform
@@ -14,3 +17,5 @@ public:
 	// Constructor. Default values in case you want an "empty" Transform.
 	__host__ __device__ explicit Transform(vec3 _position = vec3::zero(), vec3 _rotation = vec3::zero(), vec3 _scale = vec3::one()) { position = _position; rotation = _rotation; scale = _scale; }
 };
+
+#endif

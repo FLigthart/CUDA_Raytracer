@@ -1,7 +1,9 @@
 #pragma once
 
+#ifndef MATHOPERATIONS_H
+#define MATHOPERATIONS_H
+
 #include "math_constants.h"
-#include "cuda_runtime_api.h"
 
 
 class mathOperations
@@ -18,3 +20,5 @@ public:
 		return radians * 180.0f / CUDART_PI_F;
 	}
 };
+
+#endif

@@ -1,6 +1,10 @@
 #pragma once
 
+#ifndef HITINFORMATION_H
+#define HITINFORMATION_H
+
 #include "color4.h"
+#include "../materials/material.h"
 
 /*
  *	HitInformation contains all information needed for a view ray: the closest hitDistance
@@ -12,7 +16,9 @@ struct HitInformation
 	float distance;
 	vec3 normal;
 	vec3 position;
-	color4 color;
+	material* mat;
 
-	__host__ __device__ HitInformation() { distance = INFINITY; position = vec3::zero(); color = color4::black(); normal = vec3::zero(); }
+	__host__ __device__ HitInformation() { distance = INFINITY; position = vec3::zero(); normal = vec3::zero(); }
 };
+
+#endif

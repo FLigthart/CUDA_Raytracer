@@ -4,10 +4,11 @@
 #define CAMERA_H
 
 #include "ray.h"
+#include "structs/vec2.h"
 #include "structs/vec3.h"
 
 enum AAMethod : std::uint8_t
-{ None, MSAA4, MSAA8, MSAA16 };
+{ None, MSAA10, MSAA20, MSAA50, MSAA100, MSAA1000 };
 
 class Camera
 {
@@ -15,16 +16,16 @@ class Camera
 public:
 
     Camera() = default;
-    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec3& direction, float _focalLength, float _fov, int pX, int pY, AAMethod _aaMethod)
+    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec2& direction, float _fov, float _screenHeight, int pX, int pY, AAMethod _aaMethod)
     {
-	    _position = position;
-    	_up = up;
-    	_direction = direction;
+	    _lookFrom = position;
+    	_lookUp = up;
+        setLookDirection(direction);
+
+        screenHeight = _screenHeight;
 
         screenX = pX;
         screenY = pY;
-
-        focalLength = _focalLength;
 
         fov = validateFOV(_fov); // Vertical fov
 
@@ -44,13 +45,15 @@ public:
 
 
 
-    __host__ __device__ vec3 position() const { return _position; }
-    __host__ __device__ vec3 direction() const { return _direction; }
-    __host__ __device__ vec3 up() const { return _up; }
+    __host__ __device__ vec3 lookFrom() const { return _lookFrom; }
+    __host__ __device__ vec3 lookAt() const { return _lookDirection; }
+    __host__ __device__ vec3 lookUp() const { return _lookUp; }
 
-    __host__ __device__ void setPosition(vec3 position) { _position = position; }
-    __host__ __device__ void setDirection(vec3 direction) { _direction = direction; }
-    __host__ __device__ void setUp(vec3 up) { _up = up; }
+    __host__ __device__ void setLookFrom(vec3 lookFrom) { _lookFrom = lookFrom; }
+
+    __host__ __device__ void setLookDirection(vec2 direction);
+
+    __host__ __device__ void setLookUp(vec3 lookUp) { _lookUp = lookUp.normalized(); }
 
 
     __host__ __device__ float getAspectRatio()
@@ -58,14 +61,14 @@ public:
         return static_cast<float>(screenX) / static_cast<float>(screenY);
     }
 
-    __host__ __device__ vec3 getScreenHorizontal()
+    __host__ __device__ float getScreenWidth()
     {
-	    return vec3(screenVertical.y() * getAspectRatio(), 0.0f, 0.0f);
+        return screenHeight * getAspectRatio();
     }
 
     __host__ __device__ vec3 getRightVector()
     {
-        return vec3(cross(_up, _direction).normalized());
+        return vec3(cross(_lookUp, _lookDirection).normalized());
     }
 
     __host__ __device__ float getFOV() { return fov; }
@@ -78,22 +81,27 @@ public:
 
 private:
 
-    vec3 _position;
-    vec3 _up;
-    vec3 _direction;
+    float fov;
+
+    vec3 _lookFrom;
+    vec3 _lookUp;
+    vec3 _lookDirection;
+
+    float pitch;
+    float yaw;
 
     vec3 lowerLeftCorner;
-    vec3 screenVertical;
 
-    float focalLength;
-    float fov;
+    float screenHeight;
 
     __host__ __device__ static float validateFOV(float _fov) // Checks if FOV value is valid and adjusts if it is not. FOV must be >= 10.0f && <= 180.0f.
     {
         if (_fov < 10.0f) _fov = 10.0f;
-        else if (_fov > 180.0f) _fov = 180.0f;
+        else if (_fov > 150.0f) _fov = 150.0f;
         return _fov;
     }
+
+    __host__ __device__  float getScreenDistance();
 };
 
 #endif //CAMERA_H

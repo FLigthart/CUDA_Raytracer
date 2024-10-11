@@ -9,6 +9,7 @@
 *.filters
 *.user
 *.ppm
+*.ncu-rep
 
 /.vs
 /.idea

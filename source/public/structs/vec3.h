@@ -5,13 +5,14 @@
 
 #include <iostream>
 #include "cuda_runtime_api.h"
+#include "curand_kernel.h"
 
 // https://github.com/rogerallen/raytracinginoneweekendincuda/blob/ch03_rays_cuda/vec3.h
 
 struct vec3
 {
-
 public:
+
     float e[3];
 
     vec3() = default;
@@ -42,8 +43,8 @@ public:
 
 
     /*
-	*  Constructors for convenience
-	*/
+    *  Constructors for convenience
+    */
 
     __host__ __device__ static vec3 zero() { return vec3(0.0f, 0.0f, 0.0f); }
     __host__ __device__ static vec3 one() { return vec3(1.0f, 1.0f, 1.0f); }
@@ -170,6 +171,38 @@ __host__ __device__ inline vec3 cross(const vec3& v1, const vec3& v2)
     return vec3((v1.e[1] * v2.e[2] - v1.e[2] * v2.e[1]),
         (-(v1.e[0] * v2.e[2] - v1.e[2] * v2.e[0])),
         (v1.e[0] * v2.e[1] - v1.e[1] * v2.e[0]));
+}
+
+/*
+ *  Random vec3's
+ */
+
+ // Returns a random vec3 between 0 and 1
+__device__ static vec3 random(curandState* randomState)
+{
+    return vec3(curand_uniform(randomState), curand_uniform(randomState), curand_uniform(randomState));
+}
+
+__device__ static vec3 randomInUnitSphere(curandState* randomState)
+{
+    while (true)
+    {
+        // Multiply by 2 and subtract one to make the vec3 range from -1 to 1 instead of 0 to 1
+        vec3 randomVec = 2.0f * random(randomState) - vec3::one();
+
+        float vecLengthSq = randomVec.squaredLength();
+
+        /* the squared length of the vector must be greater than a very small value.
+         * Otherwise, we can get an underflow to zero on the vector. Which produces an infinite vector.
+		 */
+        if (vecLengthSq > 1e-160 && vecLengthSq < 1.0)
+            return randomVec;
+    }
+}
+
+__device__ static vec3 reflect(const vec3& inVector, const vec3& normalVector)
+{
+    return inVector - 2 * dot(inVector, normalVector) * normalVector;
 }
 
 #endif //VEC3_H
