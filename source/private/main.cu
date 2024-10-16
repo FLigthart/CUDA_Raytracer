@@ -49,10 +49,10 @@ __global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_cam
          * Hollow glass sphere (glass sphere with glass refractionIndex and air sphere)
          */
         d_shapeList[4] = new Sphere(0.5f, new dielectric(1.50f));
-        d_shapeList[4]->transform.position = vec3(1.0f, 0.5f, 1.0f);
+        d_shapeList[4]->transform.position = vec3(1.0f, 0.5f, 0.5f);
 
-        d_shapeList[5] = new Sphere(0.45f, new dielectric(1.00f / 1.50f));
-        d_shapeList[5]->transform.position = vec3(1.0f, 0.5f, 1.0f);
+        d_shapeList[5] = new Sphere(0.40f, new dielectric(1.00f / 1.50f));
+        d_shapeList[5]->transform.position = vec3(1.0f, 0.5f, 0.5f);
 
         *d_world = new ShapeList(d_shapeList, 6);
 
