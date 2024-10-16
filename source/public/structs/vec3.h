@@ -199,6 +199,18 @@ __device__ static vec3 randomInUnitSphere(curandState* randomState)
     }
 }
 
+__device__ static vec3 randomInUnitDisk(curandState* randomState)
+{
+    while (true) 
+    {
+        vec3 randomVec = 2.0f * vec3(curand_uniform(randomState), curand_uniform(randomState), 0.0f) - vec3(1.0f, 1.0f, 0.0f);
+
+        if (dot(randomVec, randomVec) >= 1.0f)
+            return randomVec;
+    }
+
+}
+
 __device__ static vec3 reflect(const vec3& inVector, const vec3& normalVector)
 {
     return inVector - 2 * dot(inVector, normalVector) * normalVector;

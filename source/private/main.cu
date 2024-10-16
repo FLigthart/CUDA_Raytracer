@@ -56,8 +56,8 @@ __global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_cam
 
         *d_world = new ShapeList(d_shapeList, 6);
 
-        //*d_camera = new Camera(vec3(-2.0f, 1.5f, -10.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 80.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000); // standard camera
-        *d_camera = new Camera(vec3(1.0f, 0.5f, -5.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000); // Glass front camera
+        *d_camera = new Camera(vec3(1.0f, 0.5f, -2.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f), 45.0f, pX, pY, AAMethod::MSAA1000, 2.5f, 0.1f); // standard camera
+        // *d_camera = new Camera(vec3(1.0f, 0.5f, -2.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f), 45.0f, pX, pY, AAMethod::MSAA1000); // Glass front camera
         //*d_camera = new Camera(vec3(1.0f, 3.0f, -2.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-30.0f, 90.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000); // Glass from top
 	}
 }
@@ -121,7 +121,7 @@ __device__ vec3 colorForPixel(Shape** world, Camera** camera, int pixelStartX, i
         float u = static_cast<float>(pixelStartX + curand_uniform(localRandomState)) / static_cast<float>((*camera)->screenX);
         float v = static_cast<float>(pixelStartY + curand_uniform(localRandomState)) / static_cast<float>((*camera)->screenY);
 
-        Ray r = (*camera)->makeRay(u, v);
+        Ray r = (*camera)->makeRay(u, v, localRandomState);
 
         color += colorPerSample(r, world, localRandomState);
     }

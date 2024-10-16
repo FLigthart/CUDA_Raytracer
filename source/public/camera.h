@@ -16,13 +16,12 @@ class Camera
 public:
 
     Camera() = default;
-    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec2& direction, float _fov, float _screenHeight, int pX, int pY, AAMethod _aaMethod)
+    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec2& direction, float _fov, int pX, int pY, AAMethod _aaMethod, float _focusDistance, float _aperture)
     {
 	    _lookFrom = position;
     	_lookUp = up;
         setLookDirection(direction);
 
-        screenHeight = _screenHeight;
 
         screenX = pX;
         screenY = pY;
@@ -30,6 +29,9 @@ public:
         fov = validateFOV(_fov); // Vertical fov
 
         aaMethod = _aaMethod;
+
+        focusDistance = _focusDistance;
+        lensRadius = _aperture / 2.0f;
 
         initialize(); // Calculate other member variables at the end of the constructor.
     }
@@ -39,7 +41,10 @@ public:
 
     AAMethod aaMethod;
 
-    __device__ Ray makeRay(float u, float v);
+    float lensRadius;
+    float focusDistance;
+
+    __device__ Ray makeRay(float u, float v, curandState* randomState);
 
     __host__ __device__ void initialize();  // Recalculate variables if a connect variable has changed.
 
@@ -100,8 +105,6 @@ private:
         else if (_fov > 150.0f) _fov = 150.0f;
         return _fov;
     }
-
-    __host__ __device__  float getScreenDistance();
 };
 
 #endif //CAMERA_H

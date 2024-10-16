@@ -1,16 +1,26 @@
 #include "../public/camera.h"
 #include "../public/mathOperations.h"
 
-__device__ Ray Camera::makeRay(float u, float v)
+__device__ Ray Camera::makeRay(float u, float v, curandState* randomState)
 {
-    vec3 direction = lowerLeftCorner + getRightVector() * u * getScreenWidth() + _lookUp * v * screenHeight - _lookFrom;
-    return Ray(_lookFrom, direction);
+    vec3 random = lensRadius * randomInUnitDisk(randomState);
+    vec3 offset = getRightVector() * random.x() + _lookUp * random.y();
+
+    vec3 direction = lowerLeftCorner + getRightVector() * u * getScreenWidth() * focusDistance + _lookUp * v * screenHeight * focusDistance - _lookFrom - offset;
+    vec3 origin = _lookFrom + offset;
+    return Ray(origin, direction);
 }
 
 __host__ __device__ void Camera::initialize()
 {
-    vec3 screenMiddle = _lookFrom + getScreenDistance() * _lookDirection;
-    lowerLeftCorner = screenMiddle - (getRightVector() * getScreenWidth() / 2) - (_lookUp * screenHeight / 2);
+    // modified from https://stackoverflow.com/questions/39155572/how-to-create-an-exponential-equation-that-calculates-camera-field-of-view-again
+    float fovRadians = mathOperations::degreesToRadians(getFOV());
+    float h = tan(fovRadians / 2.0f);
+
+    screenHeight = 2.0f * h;
+
+    vec3 screenMiddle = _lookFrom + focusDistance * _lookDirection;
+    lowerLeftCorner = screenMiddle - (focusDistance * getRightVector() * getScreenWidth() / 2.0f) - (focusDistance * _lookUp * h);
 }
 
 __host__ __device__ void Camera::setLookDirection(vec2 direction)
@@ -35,12 +45,4 @@ __host__ __device__ void Camera::setLookDirection(vec2 direction)
 
     vec3 right = vec3(cross(vec3(0, 1, 0), _lookDirection)).normalized();
     _lookUp = cross(_lookDirection, right).normalized();
-}
-
-__host__ __device__ float Camera::getScreenDistance()
-{
-    // modified from https://stackoverflow.com/questions/39155572/how-to-create-an-exponential-equation-that-calculates-camera-field-of-view-again
-    float fovRadians = mathOperations::degreesToRadians(getFOV());
-    float distance = getScreenWidth() / (float)(2 * tan(fovRadians / 2));
-    return distance;
 }
