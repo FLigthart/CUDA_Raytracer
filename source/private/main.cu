@@ -15,6 +15,7 @@
 #include "../public/shapes/sphere.h"
 #include "../public/structs/color4.h"
 #include "../public/exceptionChecker.h"
+#include "../public/materials/dielectric.h"
 #include "../public/materials/material.h"
 #include "../public/materials/metal.h"
 
@@ -38,15 +39,26 @@ __global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_cam
         d_shapeList[1] = new Sphere(20.0f, new lambertian(color4(0.8f, 0.8f, 0.0f, 1.0f)));
         d_shapeList[1]->transform.position = vec3(0.0f, -20.0f, 5.0f);
 
-        d_shapeList[2] = new Sphere(0.75f, lambertian::white());
+        d_shapeList[2] = new Sphere(0.75f, new metal(color4(0.69f, 0.55f, 0.34f, 1.0f), 0.8f));
         d_shapeList[2]->transform.position = vec3(2.0f, 0.5f, 2.0f);
 
-        d_shapeList[3] = new Sphere(0.75f, new metal(color4(0.8f, 0.6f, 0.2f, 1.0f)));
+        d_shapeList[3] = new Sphere(0.75f, new metal(color4(0.8f, 0.6f, 0.2f, 1.0f), 0.1f));
         d_shapeList[3]->transform.position = vec3(-2.0f, 0.5f, 2.0f);
 
-        *d_world = new ShapeList(d_shapeList, 4);
+        /*
+         * Hollow glass sphere (glass sphere with glass refractionIndex and air sphere)
+         */
+        d_shapeList[4] = new Sphere(0.5f, new dielectric(1.50f));
+        d_shapeList[4]->transform.position = vec3(1.0f, 0.5f, 1.0f);
 
-        *d_camera = new Camera(vec3(-2.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 80.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000);
+        d_shapeList[5] = new Sphere(0.45f, new dielectric(1.00f / 1.50f));
+        d_shapeList[5]->transform.position = vec3(1.0f, 0.5f, 1.0f);
+
+        *d_world = new ShapeList(d_shapeList, 6);
+
+        //*d_camera = new Camera(vec3(-2.0f, 1.5f, -10.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 80.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000); // standard camera
+        *d_camera = new Camera(vec3(1.0f, 0.5f, -5.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000); // Glass front camera
+        //*d_camera = new Camera(vec3(1.0f, 3.0f, -2.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-30.0f, 90.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000); // Glass from top
 	}
 }
 
@@ -72,14 +84,15 @@ __device__ color4 colorPerSample(Ray& r, Shape** world, curandState* localRandom
     {
         HitInformation hitInformation;
 
-        if ((*world)->checkIntersection(currentRay, interval(0.01f, INFINITY), hitInformation))
+        if ((*world)->checkIntersection(currentRay, interval(0.001f, INFINITY), hitInformation))
         {
             Ray scattered;
             color4 attenuation; // attenuation for each object the ray bounces to.
 
-            if (hitInformation.mat->scatter(currentRay, hitInformation, attenuation, localRandomState, currentRay))
+            if (hitInformation.mat->scatter(currentRay, hitInformation, attenuation, localRandomState, scattered))
             {
                 currentAttenuation *= attenuation;
+                currentRay = scattered;
             }
             else
             {
@@ -198,7 +211,7 @@ int main()
     Camera** d_camera;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera*)));
 
-    int shapeListSize = 4;
+    int shapeListSize = 8;
     Shape** d_shapeList;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), shapeListSize * sizeof(Shape*)));
 

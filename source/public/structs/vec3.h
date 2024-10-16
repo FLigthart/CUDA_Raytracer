@@ -4,7 +4,6 @@
 #define VEC3_H
 
 #include <iostream>
-#include "cuda_runtime_api.h"
 #include "curand_kernel.h"
 
 // https://github.com/rogerallen/raytracinginoneweekendincuda/blob/ch03_rays_cuda/vec3.h
@@ -203,6 +202,21 @@ __device__ static vec3 randomInUnitSphere(curandState* randomState)
 __device__ static vec3 reflect(const vec3& inVector, const vec3& normalVector)
 {
     return inVector - 2 * dot(inVector, normalVector) * normalVector;
+}
+
+__device__ static bool refract(const vec3& v, const vec3& normal, float etaiOverEtat, vec3& refracted)
+{
+    vec3 uv = v.normalized();
+    float dt = dot(uv, normal);
+    float discriminant = 1.0f - etaiOverEtat * etaiOverEtat * (1.0f - dt * dt);
+
+    if (discriminant  > 0.0f)
+    {
+        refracted = etaiOverEtat * (uv - normal * dt) - normal * sqrt(discriminant);
+        return true;
+    }
+
+    return false;
 }
 
 #endif //VEC3_H
