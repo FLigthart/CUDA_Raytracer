@@ -240,15 +240,15 @@ int main()
 
     switch (worldTypeIndex)
 	{
-    case 1:
+	    case 1:
             checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
 	        basicSphereScene::CreateBasicSpheres(d_shapeList, d_world, d_camera, pX, pY);
 	        break;
 
 	    // Basic Spheres scene on default
-    default:
-    	    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
-            basicSphereScene::CreateBasicSpheres(d_shapeList, d_world, d_camera, pX, pY);
+	    default:
+    		checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
+	        basicSphereScene::CreateBasicSpheres(d_shapeList, d_world, d_camera, pX, pY);
     }
 
     // Render a buffer
