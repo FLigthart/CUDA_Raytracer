@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ );
 
 inline void check_cuda(cudaError_t result, char const* const function, const char* const file, int const line)

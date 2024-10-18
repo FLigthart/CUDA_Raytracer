@@ -1,9 +1,13 @@
-#pragma once
-
 #include <iostream>
 #include <fstream>
+#include <string>
+
+#include "../public/scenes/basicSphereScenes.h"
+
+using namespace std;
 
 #include <cuda_runtime_api.h>
+#include <vector>
 
 #include "device_launch_parameters.h"
 #include "cuda_runtime.h"
@@ -15,9 +19,7 @@
 #include "../public/shapes/sphere.h"
 #include "../public/structs/color4.h"
 #include "../public/exceptionChecker.h"
-#include "../public/materials/dielectric.h"
 #include "../public/materials/material.h"
-#include "../public/materials/metal.h"
 
 //WARNING: Generate Relocatable Device Code = Yes in CUDA C++ Settings. Otherwise camera.h and camera.cu won't compile. Might cause weird behaviour.
 
@@ -27,39 +29,6 @@ __device__ color4 calculateBackgroundColor(const Ray& r)
     float t = 0.5f * (normalizedDirection.y() + 1.0f);
     vec3 rgb = (1.0f - t) * vec3::one() + t * vec3(0.5f, 0.7f, 1.0f);
     return color4(rgb.x(), rgb.y(), rgb.z(), 1.0f);
-}
-
-__global__ void createWorld(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY)
-{
-	if (threadIdx.x == 0 && blockIdx.x == 0)
-	{
-        d_shapeList[0] = new Sphere(1.2f, new lambertian(color4(0.1f, 0.2f, 0.5f, 1.0f)));
-        d_shapeList[0]->transform.position = vec3(0.0f, 1.0f, 2.0f);
-
-        d_shapeList[1] = new Sphere(20.0f, new lambertian(color4(0.8f, 0.8f, 0.0f, 1.0f)));
-        d_shapeList[1]->transform.position = vec3(0.0f, -20.0f, 5.0f);
-
-        d_shapeList[2] = new Sphere(0.75f, new metal(color4(0.69f, 0.55f, 0.34f, 1.0f), 0.8f));
-        d_shapeList[2]->transform.position = vec3(2.0f, 0.5f, 2.0f);
-
-        d_shapeList[3] = new Sphere(0.75f, new metal(color4(0.8f, 0.6f, 0.2f, 1.0f), 0.1f));
-        d_shapeList[3]->transform.position = vec3(-2.0f, 0.5f, 2.0f);
-
-        /*
-         * Hollow glass sphere (glass sphere with glass refractionIndex and air sphere)
-         */
-       // d_shapeList[4] = new Sphere(0.5f, new dielectric(1.50f));
-      //  d_shapeList[4]->transform.position = vec3(1.0f, 0.5f, 0.5f);
-
-        d_shapeList[4] = new Sphere(0.40f, new dielectric(1.00f / 1.50f));
-        d_shapeList[4]->transform.position = vec3(1.0f, 0.5f, 0.5f);
-
-        *d_world = new ShapeList(d_shapeList, 5);
-
-        *d_camera = new Camera(vec3(-2.0f, 0.5f, -8.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f), 45.0f, pX, pY, AAMethod::MSAA1000, 10.0f, 2.0f); // standard camera
-        // *d_camera = new Camera(vec3(1.0f, 0.5f, -2.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f), 45.0f, pX, pY, AAMethod::MSAA1000); // Glass front camera
-        //*d_camera = new Camera(vec3(1.0f, 3.0f, -2.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-30.0f, 90.0f), 45.0f, 2.0f, pX, pY, AAMethod::MSAA1000); // Glass from top
-	}
 }
 
 __global__ void renderInitialize(int sX, int sY, curandState* randomState)  // Initializes random for every thread. Is used for MSAA.
@@ -191,6 +160,55 @@ __global__ void freeWorld(Shape** shapeList, Shape** world, Camera** camera)
     delete *camera;
 }
 
+__host__ std::string GetScenesString(const std::vector<std::string>& worlds)
+{
+    std::string output;
+	for (int i = 0; i < static_cast<signed>(worlds.size()); i++)
+	{
+        output += worlds[i] + " [" + std::to_string(i + 1) + ']';
+
+        if (i == static_cast<signed>(worlds.size()) - 2) // On the second to last world, combine using "or" instead of ",". 
+        {
+            output += " or ";
+        }
+        else if (i < static_cast<signed>(worlds.size()) - 2)
+        {
+            output += ", ";
+        }
+	}
+
+    output += ".";
+
+    return output;
+}
+
+__host__ int InputTillValid(const std::string& errorMessage, const std::vector<std::string>& validInputs)
+{
+    string selectedWorld;
+    std::getline(std::cin, selectedWorld);
+
+    for (int i = 1; static_cast<unsigned>(i) <= validInputs.size(); i++)
+    {
+        if (selectedWorld == std::to_string(i))
+        {
+            return i;
+        }
+    }
+
+    // No match. Error message and ask again for input.
+    cout << errorMessage;
+    return InputTillValid(errorMessage, validInputs);
+}
+
+__host__ int AskUserForWorldType(const std::vector<std::string>& worlds)
+{
+    std::cout << "Please select a scene to render. Enter the number in front of the scene that you would like to render.\n" << "You can choose out of " << GetScenesString(worlds) << '\n'; \
+
+    std::string errorMessage = "ERROR: Please enter one of the scene names. You can choose out of " + GetScenesString(worlds) + '\n';
+
+    return InputTillValid(errorMessage, worlds);
+}
+
 int main()
 {
     int pX = 1920;
@@ -199,8 +217,6 @@ int main()
     // Divide threads into blocks to be sent to the gpu.
     int threadX = 12;
     int threadY = 12;
-
-    std::cerr << "Rendering a " << pX << " x " << pY << " image " << "in " << threadX << " x " << threadY << " blocks.\n";
 
     vec3* fb;
 
@@ -211,14 +227,29 @@ int main()
     Camera** d_camera;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera*)));
 
-    int shapeListSize = 8;
+    // Different scenes the user can choose out of.
+    std::vector<std::string> worlds = { "Basic Spheres"};
+
+    int worldTypeIndex = AskUserForWorldType(worlds);
+    std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
+
     Shape** d_shapeList;
-    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), shapeListSize * sizeof(Shape*)));
 
     Shape** d_world;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_world), sizeof(Shape*)));
 
-    createWorld<<<1, 1>>>(d_shapeList, d_world, d_camera, pX, pY);
+    switch (worldTypeIndex)
+	{
+    case 1:
+            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
+	        basicSphereScene::CreateBasicSpheres(d_shapeList, d_world, d_camera, pX, pY);
+	        break;
+
+	    // Basic Spheres scene on default
+    default:
+    	    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
+            basicSphereScene::CreateBasicSpheres(d_shapeList, d_world, d_camera, pX, pY);
+    }
 
     // Render a buffer
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.
@@ -231,6 +262,8 @@ int main()
     // Ensure synchronization
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
+
+    std::cout << "Rendering a " << pX << " x " << pY << " image " << "in " << threadX << " x " << threadY << " blocks.\n";
 
     renderInitialize<<<blocks, threads>>>(pX, pY, d_randomState);
 
