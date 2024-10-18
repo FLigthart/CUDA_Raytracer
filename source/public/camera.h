@@ -22,7 +22,6 @@ public:
     	_lookUp = up;
         setLookDirection(direction);
 
-
         screenX = pX;
         screenY = pY;
 
@@ -44,11 +43,10 @@ public:
     float lensRadius;
     float focusDistance;
 
+
     __device__ Ray makeRay(float u, float v, curandState* randomState);
 
     __host__ __device__ void initialize();  // Recalculate variables if a connect variable has changed.
-
-
 
     __host__ __device__ vec3 lookFrom() const { return _lookFrom; }
     __host__ __device__ vec3 lookAt() const { return _lookDirection; }
@@ -61,22 +59,22 @@ public:
     __host__ __device__ void setLookUp(vec3 lookUp) { _lookUp = lookUp.normalized(); }
 
 
-    __host__ __device__ float getAspectRatio()
+    __host__ __device__ float getAspectRatio() const
     {
         return static_cast<float>(screenX) / static_cast<float>(screenY);
     }
 
-    __host__ __device__ float getScreenWidth()
+    __host__ __device__ float getScreenWidth() const
     {
         return screenHeight * getAspectRatio();
     }
 
-    __host__ __device__ vec3 getRightVector()
+    __host__ __device__ vec3 getRightVector() const
     {
         return vec3(cross(_lookUp, _lookDirection).normalized());
     }
 
-    __host__ __device__ float getFOV() { return fov; }
+    __host__ __device__ float getFOV() const { return fov; } 
     __host__ __device__ void setFOV(float _fov)
     {
         fov = validateFOV(_fov);
@@ -98,6 +96,9 @@ private:
     vec3 lowerLeftCorner;
 
     float screenHeight;
+
+    vec3 horizontal;
+    vec3 vertical;
 
     __host__ __device__ static float validateFOV(float _fov) // Checks if FOV value is valid and adjusts if it is not. FOV must be >= 10.0f && <= 180.0f.
     {
