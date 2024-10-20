@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../public/scenes/basicSphereScenes.h"
+#include "../public/scenes/randomSpheresScene.h"
 
 using namespace std;
 
@@ -29,6 +30,14 @@ __device__ color4 calculateBackgroundColor(const Ray& r)
     float t = 0.5f * (normalizedDirection.y() + 1.0f);
     vec3 rgb = (1.0f - t) * vec3::one() + t * vec3(0.5f, 0.7f, 1.0f);
     return color4(rgb.x(), rgb.y(), rgb.z(), 1.0f);
+}
+
+__global__ void randomInitialize(curandState* randomState)
+{
+    if (threadIdx.x == 0 && blockIdx.x == 0) 
+    {
+        curand_init(2024, 0, 0, randomState);
+    }
 }
 
 __global__ void renderInitialize(int sX, int sY, curandState* randomState)  // Initializes random for every thread. Is used for MSAA.
@@ -224,11 +233,26 @@ int main()
     size_t memorySize = pixelCount * sizeof(vec3); // One vec3 (rgb) per pixel.
     checkCudaErrors(cudaMallocManaged(reinterpret_cast<void**>(&fb), memorySize));
 
+    // Allocate random states
+
+    // Random state for render
+    curandState* d_randomState;
+    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_randomState), pixelCount * sizeof(curandState)));
+
+    // Random state for world initialization
+    curandState* d_randomState2;
+    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_randomState2), sizeof(curandState)));
+
+    // Initialize random state for world initialization
+    randomInitialize<<<1, 1 >>>(d_randomState2);
+    checkCudaErrors(cudaGetLastError());
+    checkCudaErrors(cudaDeviceSynchronize());
+
     Camera** d_camera;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera*)));
 
     // Different scenes the user can choose out of.
-    std::vector<std::string> worlds = { "Basic Spheres"};
+    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres"};
 
     int worldTypeIndex = AskUserForWorldType(worlds);
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
@@ -242,22 +266,23 @@ int main()
 	{
 	    case 1:
             checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
-	        basicSphereScene::CreateBasicSpheres(d_shapeList, d_world, d_camera, pX, pY);
+	        basicSphereScene::CreateScene(d_shapeList, d_world, d_camera, pX, pY);
 	        break;
+
+        case 2:
+            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), randomSpheresScene::GetObjectCount() * sizeof(Shape*)));
+            randomSpheresScene::CreateScene(d_shapeList, d_world, d_camera, pX, pY, d_randomState2);
+            break;
 
 	    // Basic Spheres scene on default
 	    default:
     		checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
-	        basicSphereScene::CreateBasicSpheres(d_shapeList, d_world, d_camera, pX, pY);
+	        basicSphereScene::CreateScene(d_shapeList, d_world, d_camera, pX, pY);
     }
 
     // Render a buffer
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.
     dim3 threads(threadX, threadY); // A block of amount of threads per block.
-
-    // Allocate random state
-    curandState* d_randomState;
-    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_randomState), pixelCount * sizeof(curandState)));
 
     // Ensure synchronization
     checkCudaErrors(cudaGetLastError());
@@ -318,7 +343,7 @@ int main()
     checkCudaErrors(cudaFree(d_camera));
     checkCudaErrors(cudaFree(d_shapeList));
     checkCudaErrors(cudaFree(d_world));
-    checkCudaErrors(cudaFree(d_randomState));
+    checkCudaErrors(cudaFree(d_randomState2));
     checkCudaErrors(cudaFree(fb));
 
     cudaDeviceReset();

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef  BASICSPHERESCENE_H
+#ifndef BASICSPHERESCENE_H
 #define BASICSPHERESCENE_H
 
 #include "cuda_runtime.h"
@@ -12,7 +12,7 @@ class basicSphereScene
 {
 public:
 
-	static void CreateBasicSpheres(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY);
+	static void CreateScene(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY);
 
 	__host__ __device__ static int GetObjectCount()
 	{

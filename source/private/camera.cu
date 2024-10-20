@@ -1,14 +1,18 @@
 #include "../public/camera.h"
 #include "../public/mathOperations.h"
 
-__device__ Ray Camera::makeRay(float u, float v, curandState* randomState)
+__device__ Ray Camera::makeRay(float u, float v, curandState* randomState) const
 {
     vec3 random = lensRadius * randomInUnitDisk(randomState);
     vec3 offset = getRightVector() * random.x() + _lookUp * random.y();
 
     vec3 direction = lowerLeftCorner + horizontal * u + v * vertical - _lookFrom - offset;
     vec3 origin = _lookFrom + offset;
-    return Ray(origin, direction);
+
+    // Ray Time for Motion Blur
+    float rayTime = curand_uniform(randomState);
+
+    return Ray(origin, direction, rayTime);
 }
 
 __host__ __device__ void Camera::initialize()

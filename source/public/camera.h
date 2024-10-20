@@ -44,7 +44,7 @@ public:
     float focusDistance;
 
 
-    __device__ Ray makeRay(float u, float v, curandState* randomState);
+    __device__ Ray makeRay(float u, float v, curandState* randomState) const;
 
     __host__ __device__ void initialize();  // Recalculate variables if a connect variable has changed.
 

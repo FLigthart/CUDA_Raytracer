@@ -15,11 +15,17 @@ public:
 	float radius;
 	material* mat;
 
-	__host__ __device__ Sphere() { radius = 1.0f; transform = Transform(); mat = lambertian::white(); }
-	__host__ __device__ Sphere(float _radius, material* _mat)
+	__host__ __device__ Sphere(vec3 position, float _radius, material* _mat)
 	{
 		radius = _radius;
-		transform = Transform();
+		transform = ShapeTransform(Ray(position, vec3::zero()));
+		mat = _mat;
+	}
+
+	__host__ __device__ Sphere(vec3 positionAtZero, vec3 positionAtOne, float _radius, material* _mat)
+	{
+		radius = _radius;
+		transform = ShapeTransform( Ray(positionAtZero, positionAtOne - positionAtZero));
 		mat = _mat;
 	}
 
@@ -34,7 +40,8 @@ public:
 __device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation) const
 {
 	// Calculate A, B and C for quadratic equation.
-	vec3 centerToOrigin = transform.position - ray.origin();
+	vec3 currentCenter = transform.position.at(ray.time());
+	vec3 centerToOrigin = currentCenter - ray.origin();
 
 	// squaredLength is equivalent to the dot product of two equivalent vectors.
 	float a = ray.direction().squaredLength();
@@ -67,7 +74,7 @@ __device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInf
 
 	hitInformation.position = ray.origin() + ray.direction() * hitInformation.distance;
 
-	hitInformation.normal = (hitInformation.position - transform.position) / radius;
+	hitInformation.normal = (hitInformation.position - currentCenter) / radius;
 
 	hitInformation.mat = mat;
 

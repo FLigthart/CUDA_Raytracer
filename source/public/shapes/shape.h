@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "../materials/lambertian.h"
-#include "../structs/transform.h"
+#include "../structs/ShapeTransform.h"
 #include "../structs/hitInformation.h"
 #include "../structs/interval.h"
 
@@ -14,7 +14,7 @@ class Shape
 
 public:
 
-	Transform transform;
+	ShapeTransform transform;
 
 	__device__ virtual bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const = 0;
 };
