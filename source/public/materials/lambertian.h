@@ -27,7 +27,7 @@ __device__ bool lambertian::scatter(const Ray& rayIn, const HitInformation& hitI
 
 	attenuation = albedo;
 
-	scattered = Ray(hitInformation.position, target - hitInformation.position);
+	scattered = Ray(hitInformation.position, target - hitInformation.position, rayIn.time());
 
 	return true;
 }

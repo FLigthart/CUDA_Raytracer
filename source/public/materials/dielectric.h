@@ -52,13 +52,15 @@ public:
 			reflectProbability = 1.0f;
 		}
 
+		// Reflected ray
 		if (curand_uniform(randomState) < reflectProbability)
 		{
-			scattered = Ray(hitInformation.position, reflected);
+			scattered = Ray(hitInformation.position, reflected, rayIn.time());
 		}
+		// Refracted ray
 		else
 		{
-			scattered = Ray(hitInformation.position, refracted);
+			scattered = Ray(hitInformation.position, refracted, rayIn.time());
 		}
 
 		return true;

@@ -21,7 +21,7 @@ public:
 	{
 		vec3 reflected = reflect(rayIn.direction(), hitInformation.normal);
 		reflected = reflected.normalized() + (fuzz * randomInUnitSphere(randomState));	// Add fuzz by giving the ray a random offset at its endpoint.
-		scattered = Ray(hitInformation.position, reflected);
+		scattered = Ray(hitInformation.position, reflected, rayIn.time());
 		attenuation = albedo;
 		return (dot(scattered.direction(), hitInformation.normal) > 0);
 	}

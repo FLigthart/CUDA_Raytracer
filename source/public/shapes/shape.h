@@ -6,6 +6,7 @@
 #include "../structs/ShapeTransform.h"
 #include "../structs/hitInformation.h"
 #include "../structs/interval.h"
+#include "../bvh/aabb.h"
 
 class Ray;
 
@@ -17,12 +18,13 @@ public:
 	ShapeTransform transform;
 
 	__device__ virtual bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const = 0;
+
+	__device__ virtual aabb boundingBox() const = 0;
 };
 
 class ShapeList : public Shape
 {
 public:
-	__device__ ShapeList() = default;
 	__device__ ShapeList(Shape** l, int n) { list = l; listSize = n;  }
 
 	Shape** list;
