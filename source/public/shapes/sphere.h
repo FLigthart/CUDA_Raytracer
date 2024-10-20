@@ -15,26 +15,42 @@ public:
 	float radius;
 	material* mat;
 
+	// Stationary Sphere
 	__host__ __device__ Sphere(vec3 position, float _radius, material* _mat)
 	{
 		radius = _radius;
 		transform = ShapeTransform(Ray(position, vec3::zero()));
 		mat = _mat;
+
+		vec3 sphereVector = vec3(radius, radius, radius);
+		bbox = aabb(position - sphereVector, position + sphereVector);
 	}
 
+	// Moving Sphere
 	__host__ __device__ Sphere(vec3 positionAtZero, vec3 positionAtOne, float _radius, material* _mat)
 	{
 		radius = _radius;
 		transform = ShapeTransform( Ray(positionAtZero, positionAtOne - positionAtZero));
 		mat = _mat;
+
+		// We want a bounding box for entire range of motion. So we take a box at time = 0 and time = 1, and compute a box around these boxes.
+		vec3 sphereVector = vec3(radius, radius, radius);
+		aabb box0(transform.position.at(0.0f) - sphereVector, transform.position.at(0.0f) + sphereVector);
+		aabb box1(transform.position.at(1.0f) - sphereVector, transform.position.at(1.0f) + sphereVector);
+		bbox = aabb(box0, box1);
 	}
 
 	__device__ bool inline checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation) const override;
 
-	 ~Sphere()
-	 {
+	__device__ virtual aabb boundingBox() const override { return bbox; }
+
+	__host__ __device__ ~Sphere()
+	{
 		 delete mat;
-	 }
+	}
+
+private:
+	aabb bbox;
 };
 
 __device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation) const
