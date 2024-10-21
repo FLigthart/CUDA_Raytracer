@@ -25,15 +25,28 @@ public:
 class ShapeList : public Shape
 {
 public:
-	__device__ ShapeList(Shape** l, int n) { list = l; listSize = n;  }
+	__device__ ShapeList(Shape** l, int n);
 
 	Shape** list;
 	int listSize;
 
-	__device__ virtual bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const override;
+	__device__ bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const override;
+
+	__device__ aabb boundingBox() const override;
+
+private:
+	aabb bbox;
 };
 
-__device__ bool inline ShapeList::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const
+__device__ inline ShapeList::ShapeList(Shape** l, int n) : list(l), listSize(n)
+{
+	for (int i = 0; i < n; i++) // For each object, expand the bbox so that it contains the new shape.
+	{
+		bbox = aabb(bbox, list[i]->boundingBox());
+	}
+}
+
+bool inline ShapeList::checkIntersection(Ray& ray, const interval hitRange, HitInformation& hitInformation) const
 {
 	HitInformation temp_info;
 	bool hitAnything = false;
@@ -51,5 +64,11 @@ __device__ bool inline ShapeList::checkIntersection(Ray& ray, interval hitRange,
 
 	return hitAnything;
 }
+
+__device__ inline aabb ShapeList::boundingBox() const
+{
+	return bbox;
+}
+
 
 

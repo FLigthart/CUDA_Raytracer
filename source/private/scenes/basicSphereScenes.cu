@@ -7,8 +7,10 @@
 #include "../../public/materials/dielectric.h"
 #include "../../public/materials/metal.h"
 #include "../../public/camera.h"
+#include "../../public/util.h"
+#include "../../public/bvh/bvh.h"
 
-__global__ void InitializeBasicSpheres(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY, int objectCount)
+__global__ void InitializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, Camera** d_camera, int pX, int pY, int objectCount, curandState* localCurandState)
 {
     if (threadIdx.x == 0 && blockIdx.x == 0)
     {
@@ -27,13 +29,15 @@ __global__ void InitializeBasicSpheres(Shape** d_shapeList, Shape** d_world, Cam
 
         d_shapeList[5] = new Sphere(vec3(1.0f, 0.5f, 0.5f), 0.40f, new dielectric(1.00f / 1.50f));
 
-        *d_world = new ShapeList(d_shapeList, objectCount);
+        *d_bvhTree = bvhNode(d_shapeList, objectCount);
 
         *d_camera = new Camera(vec3(0.0f, 1.5f, -3.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 90.0f), 45.0f, pX, pY, AAMethod::MSAA1000, 5.0f, 0.0f); // standard camera
     }
 }
 
-void basicSphereScene::CreateScene(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY)
+void basicSphereScene::CreateScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, curandState* localCurandState)
 {
-    InitializeBasicSpheres<<<1, 1>>>(d_shapeList, d_world, d_camera, pX, pY, objectCount);
+    InitializeTree(objectCount, d_bvhTree);
+
+    InitializeBasicSpheres<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
 }

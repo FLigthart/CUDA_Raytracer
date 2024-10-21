@@ -16,7 +16,7 @@ public:
 	material* mat;
 
 	// Stationary Sphere
-	__host__ __device__ Sphere(vec3 position, float _radius, material* _mat)
+	__device__ Sphere(vec3 position, float _radius, material* _mat)
 	{
 		radius = _radius;
 		transform = ShapeTransform(Ray(position, vec3::zero()));
@@ -27,7 +27,7 @@ public:
 	}
 
 	// Moving Sphere
-	__host__ __device__ Sphere(vec3 positionAtZero, vec3 positionAtOne, float _radius, material* _mat)
+	__device__ Sphere(vec3 positionAtZero, vec3 positionAtOne, float _radius, material* _mat)
 	{
 		radius = _radius;
 		transform = ShapeTransform( Ray(positionAtZero, positionAtOne - positionAtZero));
@@ -44,7 +44,7 @@ public:
 
 	__device__ virtual aabb boundingBox() const override { return bbox; }
 
-	__host__ __device__ ~Sphere()
+	__device__ ~Sphere()
 	{
 		 delete mat;
 	}

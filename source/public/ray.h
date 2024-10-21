@@ -19,7 +19,7 @@ public:
     __host__ __device__ vec3 pointAtMagnitude(float t) const { return A + t * B; }
     __host__ __device__ float time() const { return _time; }
 
-    __device__ vec3 at(float t) const
+    __host__ __device__ vec3 at(float t) const
     {
         return origin() + t * direction();
     }

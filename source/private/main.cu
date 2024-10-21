@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 
+#include "../public/bvh/bvh.h"
 #include "../public/scenes/basicSphereScenes.h"
 #include "../public/scenes/randomSpheresScene.h"
 
@@ -19,7 +20,7 @@ using namespace std;
 #include "../public/camera.h"
 #include "../public/shapes/sphere.h"
 #include "../public/structs/color4.h"
-#include "../public/exceptionChecker.h"
+#include "../public/util.h"
 #include "../public/materials/material.h"
 
 //WARNING: Generate Relocatable Device Code = Yes in CUDA C++ Settings. Otherwise camera.h and camera.cu won't compile. Might cause weird behaviour.
@@ -53,7 +54,7 @@ __global__ void renderInitialize(int sX, int sY, curandState* randomState)  // I
     curand_init(2024, pixelIndex, 0, &randomState[pixelIndex]);
 }
 
-__device__ color4 colorPerSample(Ray& r, Shape** world, curandState* localRandomState)
+__device__ color4 colorPerSample(Ray& r, bvhNode* world, curandState* localRandomState)
 {
     Ray currentRay = r;
     color4 currentAttenuation = color4::white();   // This decreases for each bounce. Making each bounce have less impact.
@@ -62,7 +63,7 @@ __device__ color4 colorPerSample(Ray& r, Shape** world, curandState* localRandom
     {
         HitInformation hitInformation;
 
-        if ((*world)->checkIntersection(currentRay, interval(0.001f, INFINITY), hitInformation))
+        if (world->checkIntersection(currentRay, interval(0.001f, INFINITY), hitInformation))
         {
             Ray scattered;
             color4 attenuation; // attenuation for each object the ray bounces to.
@@ -89,7 +90,7 @@ __device__ color4 colorPerSample(Ray& r, Shape** world, curandState* localRandom
     return color4::black(); // 0 0 0 1 values
 }
 
-__device__ vec3 colorForPixel(Shape** world, Camera** camera, int pixelStartX, int pixelStartY, curandState* localRandomState, int sampleSize)
+__device__ vec3 colorForPixel(bvhNode* world, Camera** camera, int pixelStartX, int pixelStartY, curandState* localRandomState, int sampleSize)
 {
     color4 color = color4(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -114,7 +115,7 @@ __device__ vec3 colorForPixel(Shape** world, Camera** camera, int pixelStartX, i
     return rgbValues;
 }
 
-__global__ void render(vec3* fb, Camera** camera, Shape** world, curandState* randomState)
+__global__ void render(vec3* fb, Camera** camera, bvhNode* world, curandState* randomState)
 {
     int pixelStartX = threadIdx.x + blockIdx.x * blockDim.x;
     int pixelStartY = threadIdx.y + blockIdx.y * blockDim.y;
@@ -158,14 +159,13 @@ __global__ void render(vec3* fb, Camera** camera, Shape** world, curandState* ra
     randomState[pixelIndex] = localRandomState; // Make sure randomState is still set properly
 }
 
-__global__ void freeWorld(Shape** shapeList, Shape** world, Camera** camera)
+__global__ void freeWorld(Shape** shapeList, Camera** camera)
 {
 	for (int i = 0; i < 2; i++)
 	{
         delete shapeList[i];
 	}
 
-    delete *world;
     delete *camera;
 }
 
@@ -224,8 +224,8 @@ int main()
     int pY = 1080;
 
     // Divide threads into blocks to be sent to the gpu.
-    int threadX = 12;
-    int threadY = 12;
+    int threadX = 16;
+    int threadY = 16;
 
     vec3* fb;
 
@@ -259,26 +259,25 @@ int main()
 
     Shape** d_shapeList;
 
-    Shape** d_world;
-    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_world), sizeof(Shape*)));
+    bvhNode* d_bhvTree;
 
     switch (worldTypeIndex)
 	{
 	    case 1:
             checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
-	        basicSphereScene::CreateScene(d_shapeList, d_world, d_camera, pX, pY);
+	        basicSphereScene::CreateScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
 	        break;
 
         case 2:
             checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), randomSpheresScene::GetObjectCount() * sizeof(Shape*)));
-            randomSpheresScene::CreateScene(d_shapeList, d_world, d_camera, pX, pY, d_randomState2);
+            randomSpheresScene::CreateScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
             break;
 
-	    // Basic Spheres scene on default
 	    default:
-    		checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
-	        basicSphereScene::CreateScene(d_shapeList, d_world, d_camera, pX, pY);
+            exit(1);
     }
+
+    checkCudaErrors(cudaGetLastError());
 
     // Render a buffer
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.
@@ -296,15 +295,14 @@ int main()
     checkCudaErrors(cudaDeviceSynchronize());
 
     // Start counting ms here.
-    clock_t start, stop;
-    start = clock();
+    clock_t start = clock();
 
-    render<<<blocks, threads>>>(fb, d_camera, d_world, d_randomState);
+    render<<<blocks, threads>>>(fb, d_camera, d_bhvTree, d_randomState);
 
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
-    stop = clock();
+    clock_t stop = clock();
     double timer_seconds = static_cast<double>(stop - start);
 
     std::cerr << "Image rendered in " << timer_seconds << " ms.\n";
@@ -337,12 +335,12 @@ int main()
     std::cerr << "Writing render to file finished.";
 
     checkCudaErrors(cudaDeviceSynchronize());
-    freeWorld<<<1, 1 >>>(d_shapeList, d_world, d_camera);
+    freeWorld<<<1, 1>>>(d_shapeList, d_camera);
     checkCudaErrors(cudaGetLastError());
 
     checkCudaErrors(cudaFree(d_camera));
     checkCudaErrors(cudaFree(d_shapeList));
-    checkCudaErrors(cudaFree(d_world));
+    checkCudaErrors(cudaFree(d_bhvTree));
     checkCudaErrors(cudaFree(d_randomState2));
     checkCudaErrors(cudaFree(fb));
 

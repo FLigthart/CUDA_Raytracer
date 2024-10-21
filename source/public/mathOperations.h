@@ -3,6 +3,8 @@
 #ifndef MATHOPERATIONS_H
 #define MATHOPERATIONS_H
 
+#include <random>
+
 #include "math_constants.h"
 
 
@@ -33,6 +35,15 @@ public:
 		}
 
 		return value;
+	}
+
+	__device__ static int randomInt(int min, int max)
+	{
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> distr(min, max);
+
+		return distr(gen);
 	}
 };
 

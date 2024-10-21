@@ -12,27 +12,27 @@ class aabb
 public:
 	interval x, y, z;
 
-	__host__ __device__ aabb() = default; // The default AABB is empty
+	__device__ aabb() = default; // The default AABB is empty
 
-	__host__ __device__ aabb(const interval& x, const interval& y, const interval& z)
+	__device__ aabb(const interval& x, const interval& y, const interval& z)
 		: x(x), y(y), z(z) {}
 
 	// a and b are extrema for the bounding box.
-	__host__ __device__ aabb(const vec3& a, const vec3& b)
+	__device__ aabb(const vec3& a, const vec3& b)
 	{
 		x = interval::minToMax(a.x(), b.x());
 		y = interval::minToMax(a.y(), b.y());
 		z = interval::minToMax(a.z(), b.z());
 	}
 
-	__host__ __device__ aabb(const aabb& box0, const aabb& box1)
+	__device__ aabb(const aabb& box0, const aabb& box1)
 	{
 		x = interval(box0.x, box1.x);
 		y = interval(box0.y, box1.y);
 		z = interval(box0.z, box1.z);
 	}
 
-	__host__ __device__ const interval& axisInterval(int n) const
+	__device__ const interval& axisInterval(int n) const
 	{
 		if (n == 1) return y;
 		if (n == 2) return z;

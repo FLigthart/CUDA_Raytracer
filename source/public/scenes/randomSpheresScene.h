@@ -7,6 +7,7 @@
 
 #include "cuda_runtime.h"
 
+class bvhNode;
 class Shape;
 class Camera;
 
@@ -14,7 +15,7 @@ class randomSpheresScene
 {
 public:
 
-	static void CreateScene(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY, curandState* randomState);
+	static void CreateScene(bvhNode*& d_bvhTree, Shape** d_shapeList,  Camera** d_camera, int pX, int pY, curandState* randomState);
 
 	__host__ __device__ static int GetObjectCount()
 	{
