@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../public/bvh/bvh.h"
 #include <cuda_runtime_api.h>
 #include <iostream>
 
@@ -16,10 +15,4 @@ inline void check_cuda(cudaError_t result, char const* const function, const cha
         cudaDeviceReset();
         exit(99);
     }
-}
-
-inline void initializeTree(int size, bvhNode* d_bvhTree)
-{
-    int treeSize = 2 * size;
-    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_bvhTree), treeSize * sizeof(bvhNode)));
 }

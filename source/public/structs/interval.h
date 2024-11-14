@@ -60,10 +60,8 @@ public:
 		return (a <= b) ? interval(a, b) : interval(b, a);
 	}
 
-	static const interval empty, universe;
+	__device__ static interval empty() { return interval(INFINITY, -INFINITY); }
+	__device__ static interval universe() { return interval(-INFINITY, INFINITY); }
 };
-
-const interval interval::empty = interval(INFINITY, -INFINITY);
-const interval interval::universe = interval(-INFINITY, INFINITY);
 
 #endif

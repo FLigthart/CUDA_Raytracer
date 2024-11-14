@@ -76,10 +76,8 @@ public:
 			return y.size() > z.size() ? 1 : 2;
 	}
 
-	static const aabb empty, universe;
+	__device__ static aabb empty() { return aabb(interval::empty(), interval::empty(), interval::empty()); }
+	__device__ static aabb universe() { return aabb(interval::universe(), interval::universe(), interval::universe()); }
 };
-
-const aabb aabb::empty = aabb(interval::empty, interval::empty, interval::empty);
-const aabb aabb::universe = aabb(interval::universe, interval::universe, interval::universe);
 
 #endif

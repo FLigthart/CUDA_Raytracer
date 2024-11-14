@@ -69,6 +69,3 @@ __device__ inline aabb ShapeList::boundingBox() const
 {
 	return bbox;
 }
-
-
-

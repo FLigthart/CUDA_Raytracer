@@ -15,7 +15,7 @@ class randomSpheresScene
 {
 public:
 
-	static void createScene(bvhNode*& d_bvhTree, Shape** d_shapeList,  Camera** d_camera, int pX, int pY, curandState* randomState);
+	static void createScene(bvhNode*& d_bvhTree, Shape**& d_shapeList,  Camera*& d_camera, int pX, int pY, curandState* randomState);
 
 	__host__ __device__ static int getObjectCount()
 	{

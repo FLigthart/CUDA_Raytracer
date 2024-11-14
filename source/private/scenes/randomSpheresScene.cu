@@ -7,12 +7,11 @@
 #include "../../public/materials/dielectric.h"
 #include "../../public/materials/metal.h"
 #include "../../public/camera.h"
-#include "../../public/util.h"
 #include "../../public/bvh/bvh.h"
 
 #define RND (curand_uniform(&localRandomState))
 
-__global__ void InitializeScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, int objectCount, curandState* randomState)
+__global__ void InitializeScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera* d_camera, int pX, int pY, int objectCount, curandState* randomState)
 {
     if (threadIdx.x == 0 && blockIdx.x == 0)
     {
@@ -57,12 +56,12 @@ __global__ void InitializeScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera
 
         *d_bvhTree = bvhNode(d_shapeList, objectCount);
 
-        *d_camera = new Camera(vec3(13.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-12.0f, 155.0f), 30.0f, pX, pY, AAMethod::MSAA100, 10.0f, 0.05f); // standard camera
+        *d_camera = Camera(vec3(13.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-12.0f, 155.0f), 30.0f, pX, pY, AAMethod::MSAA100, 10.0f, 0.05f); // standard camera
     }
 }
-void randomSpheresScene::createScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, curandState* randomState)
+void randomSpheresScene::createScene(bvhNode*& d_bvhTree, Shape**& d_shapeList, Camera*& d_camera, int pX, int pY, curandState* randomState)
 {
-    initializeTree(objectCount, d_bvhTree);
+    bvhNode::initializeTree(objectCount, d_bvhTree);
 
     InitializeScene<<<1, 1>>>(d_bvhTree, d_shapeList,d_camera, pX, pY, objectCount, randomState);
 }

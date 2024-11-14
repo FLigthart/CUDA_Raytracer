@@ -23,6 +23,8 @@ public:
 
 	__device__ aabb boundingBox() const override { return bbox; }
 
+	__host__ static void bvhNode::initializeTree(int size, bvhNode* d_bvhTree);
+
 private:
 	Shape* left;
 	Shape* right;

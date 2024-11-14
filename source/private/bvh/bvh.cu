@@ -1,7 +1,8 @@
 #include "../../public/bvh/bvh.h"
 #include <random>
-#include <algorithm>
-#include "../../public/mathOperations.h"
+#include "../../public/util.h"
+#include <thrust/sort.h>
+#include <thrust/device_ptr.h>
 
 __device__ bool bvhNode::boxCompare(Shape* a, Shape* b, int axisIndex)
 {
@@ -28,7 +29,7 @@ __device__ bool bvhNode::boxZCompare(Shape* a, Shape* b)
 
 __device__ bvhNode::bvhNode(Shape**& shapes, int start, int end)
 {
-	bbox = aabb::empty;
+	bbox = aabb::empty();
 	for (int objectIndex = start; objectIndex < end; objectIndex++)
 	{
 		bbox = aabb(bbox, shapes[objectIndex]->boundingBox());
@@ -52,7 +53,8 @@ __device__ bvhNode::bvhNode(Shape**& shapes, int start, int end)
 		right = shapes[start + 1];
 		break;
 	default:
-		std::sort(shapes[0] + start, shapes[0] + end, comparator);
+		thrust::device_ptr<Shape*> thrustShapes = thrust::device_pointer_cast(shapes);
+		thrust::sort(thrustShapes + start, thrustShapes + end, comparator);
 
 		int middle = start + objectSpan / 2;
 
@@ -70,4 +72,10 @@ __device__ bool bvhNode::checkIntersection(Ray& ray, interval hitRange, HitInfor
 	bool hitRight = right->checkIntersection(ray, hitRange, hitInformation);
 
 	return hitRight || hitLeft;
+}
+
+__host__ void bvhNode::initializeTree(int size, bvhNode* d_bvhTree)
+{
+	int treeSize = 2 * size;
+	checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_bvhTree), treeSize * sizeof(bvhNode)));
 }

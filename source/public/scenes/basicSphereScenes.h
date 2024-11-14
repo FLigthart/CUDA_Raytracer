@@ -15,7 +15,7 @@ class basicSphereScene
 {
 public:
 
-	static void createScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, curandState* localCurandState);
+	static void createScene(bvhNode*& d_bvhTree, Shape**& d_shapeList, Camera*& d_camera, int pX, int pY, curandState* localCurandState);
 
 	__host__ __device__ static int getObjectCount()
 	{

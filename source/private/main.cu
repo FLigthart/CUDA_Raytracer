@@ -23,7 +23,7 @@ using namespace std;
 #include "../public/util.h"
 #include "../public/materials/material.h"
 
-//WARNING: Generate Relocatable Device Code = Yes in CUDA C++ Settings. Otherwise camera.h and camera.cu won't compile. Might cause weird behaviour.
+//WARNING: Generate Relocatable Device Code = Yes in CUDA C++ Settings. Otherwise, camera.h and camera.cu won't compile. Might cause weird behaviour.
 
 __device__ color4 calculateBackgroundColor(const Ray& r)
 {
@@ -90,17 +90,17 @@ __device__ color4 colorPerSample(Ray& r, bvhNode* world, curandState* localRando
     return color4::black(); // 0 0 0 1 values
 }
 
-__device__ vec3 colorForPixel(bvhNode* world, Camera** camera, int pixelStartX, int pixelStartY, curandState* localRandomState, int sampleSize)
+__device__ vec3 colorForPixel(bvhNode* world, Camera* camera, int pixelStartX, int pixelStartY, curandState* localRandomState, int sampleSize)
 {
     color4 color = color4(0.0f, 0.0f, 0.0f, 1.0f);
 
 
     for (int i = 0; i < sampleSize; i++) // For each path tracing sample
     {
-        float u = static_cast<float>(pixelStartX + curand_uniform(localRandomState)) / static_cast<float>((*camera)->screenX);
-        float v = static_cast<float>(pixelStartY + curand_uniform(localRandomState)) / static_cast<float>((*camera)->screenY);
+        float u = static_cast<float>(pixelStartX + curand_uniform(localRandomState)) / static_cast<float>(camera->screenX);
+        float v = static_cast<float>(pixelStartY + curand_uniform(localRandomState)) / static_cast<float>(camera->screenY);
 
-        Ray r = (*camera)->makeRay(u, v, localRandomState);
+        Ray r = camera->makeRay(u, v, localRandomState);
 
         color += colorPerSample(r, world, localRandomState);
     }
@@ -115,20 +115,20 @@ __device__ vec3 colorForPixel(bvhNode* world, Camera** camera, int pixelStartX, 
     return rgbValues;
 }
 
-__global__ void render(vec3* fb, Camera** camera, bvhNode* world, curandState* randomState)
+__global__ void render(vec3* fb, Camera* camera, bvhNode* world, curandState* randomState)
 {
     int pixelStartX = threadIdx.x + blockIdx.x * blockDim.x;
     int pixelStartY = threadIdx.y + blockIdx.y * blockDim.y;
 
-    if ((pixelStartX >= (*camera)->screenX) || (pixelStartY >= (*camera)->screenY)) return;   // Pixels that will be rendered are out of screen.
+    if ((pixelStartX >= camera->screenX) || (pixelStartY >= camera->screenY)) return;   // Pixels that will be rendered are out of screen.
 
-    int pixelIndex = pixelStartY * (*camera)->screenX + pixelStartX; // Index of pixel in array.
+    int pixelIndex = pixelStartY * camera->screenX + pixelStartX; // Index of pixel in array.
 
     curandState localRandomState = randomState[pixelIndex];
 
     int sampleSize; // Amount of AA samples
 
-    switch ((*camera)->aaMethod)
+    switch (camera->aaMethod)
     {
 	    case MSAA10:
             sampleSize = 4;
@@ -159,14 +159,14 @@ __global__ void render(vec3* fb, Camera** camera, bvhNode* world, curandState* r
     randomState[pixelIndex] = localRandomState; // Make sure randomState is still set properly
 }
 
-__global__ void freeWorld(Shape** shapeList, Camera** camera)
+__global__ void freeWorld(Shape** shapeList, Camera* camera)
 {
 	for (int i = 0; i < 2; i++)
 	{
         delete shapeList[i];
 	}
 
-    delete *camera;
+    delete camera;
 }
 
 __host__ std::string getScenesString(const std::vector<std::string>& worlds)
@@ -248,8 +248,8 @@ int main()
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
-    Camera** d_camera;
-    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera*)));
+    Camera* d_camera;
+    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera)));
 
     // Different scenes the user can choose out of.
     std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres"};
