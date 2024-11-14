@@ -28,7 +28,13 @@ __device__ bool bvhNode::boxZCompare(Shape* a, Shape* b)
 
 __device__ bvhNode::bvhNode(Shape**& shapes, int start, int end)
 {
-	int axis = mathOperations::randomInt(0, 2);
+	bbox = aabb::empty;
+	for (int objectIndex = start; objectIndex < end; objectIndex++)
+	{
+		bbox = aabb(bbox, shapes[objectIndex]->boundingBox());
+	}
+
+	int axis = bbox.longestAxis();
 
 	auto comparator = (axis == 0) ? boxXCompare
 		: (axis == 1) ? boxYCompare
@@ -53,8 +59,6 @@ __device__ bvhNode::bvhNode(Shape**& shapes, int start, int end)
 		left = new bvhNode(shapes, start, middle);
 		right = new bvhNode(shapes, middle, end);
 	}
-
-	bbox = aabb(left->boundingBox(), right->boundingBox());
 }
 
 __device__ bool bvhNode::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const

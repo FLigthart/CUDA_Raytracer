@@ -46,7 +46,7 @@ __device__ inline ShapeList::ShapeList(Shape** l, int n) : list(l), listSize(n)
 	}
 }
 
-bool inline ShapeList::checkIntersection(Ray& ray, const interval hitRange, HitInformation& hitInformation) const
+__device__ bool inline ShapeList::checkIntersection(Ray& ray, const interval hitRange, HitInformation& hitInformation) const
 {
 	HitInformation temp_info;
 	bool hitAnything = false;

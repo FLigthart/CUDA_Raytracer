@@ -18,7 +18,7 @@ inline void check_cuda(cudaError_t result, char const* const function, const cha
     }
 }
 
-inline void InitializeTree(int size, bvhNode* d_bvhTree)
+inline void initializeTree(int size, bvhNode* d_bvhTree)
 {
     int treeSize = 2 * size;
     checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_bvhTree), treeSize * sizeof(bvhNode)));

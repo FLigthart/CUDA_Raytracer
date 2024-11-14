@@ -12,7 +12,7 @@ class aabb
 public:
 	interval x, y, z;
 
-	__device__ aabb() = default; // The default AABB is empty
+	aabb() = default; // The default AABB is empty
 
 	__device__ aabb(const interval& x, const interval& y, const interval& z)
 		: x(x), y(y), z(z) {}
@@ -67,5 +67,19 @@ public:
 
 		return true;
 	}
+
+	__device__ int longestAxis() const
+	{
+		if (x.size() > z.size())
+			return x.size() > z.size() ? 0 : 2;
+		else
+			return y.size() > z.size() ? 1 : 2;
+	}
+
+	static const aabb empty, universe;
 };
+
+const aabb aabb::empty = aabb(interval::empty, interval::empty, interval::empty);
+const aabb aabb::universe = aabb(interval::universe, interval::universe, interval::universe);
+
 #endif

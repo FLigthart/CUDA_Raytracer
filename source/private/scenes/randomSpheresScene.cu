@@ -60,9 +60,9 @@ __global__ void InitializeScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera
         *d_camera = new Camera(vec3(13.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-12.0f, 155.0f), 30.0f, pX, pY, AAMethod::MSAA100, 10.0f, 0.05f); // standard camera
     }
 }
-void randomSpheresScene::CreateScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, curandState* randomState)
+void randomSpheresScene::createScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, curandState* randomState)
 {
-    InitializeTree(objectCount, d_bvhTree);
+    initializeTree(objectCount, d_bvhTree);
 
     InitializeScene<<<1, 1>>>(d_bvhTree, d_shapeList,d_camera, pX, pY, objectCount, randomState);
 }

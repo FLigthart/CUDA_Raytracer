@@ -10,7 +10,7 @@
 #include "../../public/util.h"
 #include "../../public/bvh/bvh.h"
 
-__global__ void InitializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, Camera** d_camera, int pX, int pY, int objectCount, curandState* localCurandState)
+__global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, Camera** d_camera, int pX, int pY, int objectCount, curandState* localCurandState)
 {
     if (threadIdx.x == 0 && blockIdx.x == 0)
     {
@@ -35,9 +35,9 @@ __global__ void InitializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, 
     }
 }
 
-void basicSphereScene::CreateScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, curandState* localCurandState)
+void basicSphereScene::createScene(bvhNode*& d_bvhTree, Shape** d_shapeList, Camera** d_camera, int pX, int pY, curandState* localCurandState)
 {
-    InitializeTree(objectCount, d_bvhTree);
+    initializeTree(objectCount, d_bvhTree);
 
-    InitializeBasicSpheres<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
+    initializeBasicSpheres<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
 }

@@ -29,6 +29,11 @@ public:
 		max = a.max >= b.max ? a.max : b.max;
 	}
 
+	__device__ float size() const
+	{
+		return max - min;
+	}
+
 	// Is between values (but not on values)
 	__device__ bool surrounds(float x) const
 	{
@@ -54,6 +59,11 @@ public:
 	{
 		return (a <= b) ? interval(a, b) : interval(b, a);
 	}
+
+	static const interval empty, universe;
 };
+
+const interval interval::empty = interval(INFINITY, -INFINITY);
+const interval interval::universe = interval(-INFINITY, INFINITY);
 
 #endif

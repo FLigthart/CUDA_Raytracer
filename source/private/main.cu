@@ -169,7 +169,7 @@ __global__ void freeWorld(Shape** shapeList, Camera** camera)
     delete *camera;
 }
 
-__host__ std::string GetScenesString(const std::vector<std::string>& worlds)
+__host__ std::string getScenesString(const std::vector<std::string>& worlds)
 {
     std::string output;
 	for (int i = 0; i < static_cast<signed>(worlds.size()); i++)
@@ -191,7 +191,7 @@ __host__ std::string GetScenesString(const std::vector<std::string>& worlds)
     return output;
 }
 
-__host__ int InputTillValid(const std::string& errorMessage, const std::vector<std::string>& validInputs)
+__host__ int inputTillValid(const std::string& errorMessage, const std::vector<std::string>& validInputs)
 {
     string selectedWorld;
     std::getline(std::cin, selectedWorld);
@@ -206,16 +206,16 @@ __host__ int InputTillValid(const std::string& errorMessage, const std::vector<s
 
     // No match. Error message and ask again for input.
     cout << errorMessage;
-    return InputTillValid(errorMessage, validInputs);
+    return inputTillValid(errorMessage, validInputs);
 }
 
-__host__ int AskUserForWorldType(const std::vector<std::string>& worlds)
+__host__ int askUserForWorldType(const std::vector<std::string>& worlds)
 {
-    std::cout << "Please select a scene to render. Enter the number in front of the scene that you would like to render.\n" << "You can choose out of " << GetScenesString(worlds) << '\n'; \
+    std::cout << "Please select a scene to render. Enter the number in front of the scene that you would like to render.\n" << "You can choose out of " << getScenesString(worlds) << '\n'; \
 
-    std::string errorMessage = "ERROR: Please enter one of the scene names. You can choose out of " + GetScenesString(worlds) + '\n';
+    std::string errorMessage = "ERROR: Please enter one of the scene names. You can choose out of " + getScenesString(worlds) + '\n';
 
-    return InputTillValid(errorMessage, worlds);
+    return inputTillValid(errorMessage, worlds);
 }
 
 int main()
@@ -254,7 +254,7 @@ int main()
     // Different scenes the user can choose out of.
     std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres"};
 
-    int worldTypeIndex = AskUserForWorldType(worlds);
+    int worldTypeIndex = askUserForWorldType(worlds);
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
 
     Shape** d_shapeList;
@@ -264,13 +264,13 @@ int main()
     switch (worldTypeIndex)
 	{
 	    case 1:
-            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::GetObjectCount() * sizeof(Shape*)));
-	        basicSphereScene::CreateScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
+            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::getObjectCount() * sizeof(Shape*)));
+	        basicSphereScene::createScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
 	        break;
 
         case 2:
-            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), randomSpheresScene::GetObjectCount() * sizeof(Shape*)));
-            randomSpheresScene::CreateScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
+            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), randomSpheresScene::getObjectCount() * sizeof(Shape*)));
+            randomSpheresScene::createScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
             break;
 
 	    default:
