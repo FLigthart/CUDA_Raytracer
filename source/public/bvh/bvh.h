@@ -11,7 +11,7 @@ class bvhNode : public Shape
 public:
 	__device__ bvhNode(Shape** shapeList, int objectCount) : bvhNode(shapeList, 0, objectCount) {}
 
-	__device__ bvhNode(Shape**& shapes, int start, int end);
+	__device__ bvhNode(Shape** shapes, int start, int end);
 
 	__device__ static bool boxCompare(Shape* a, Shape* b, int axisIndex);
 

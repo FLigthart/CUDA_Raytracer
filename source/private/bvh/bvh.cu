@@ -27,7 +27,7 @@ __device__ bool bvhNode::boxZCompare(Shape* a, Shape* b)
 	return boxCompare(a, b, 2);
 }
 
-__device__ bvhNode::bvhNode(Shape**& shapes, int start, int end)
+__device__ bvhNode::bvhNode(Shape** shapes, int start, int end)
 {
 	bbox = aabb::empty();
 	for (int objectIndex = start; objectIndex < end; objectIndex++)
@@ -53,8 +53,7 @@ __device__ bvhNode::bvhNode(Shape**& shapes, int start, int end)
 		right = shapes[start + 1];
 		break;
 	default:
-		thrust::device_ptr<Shape*> thrustShapes = thrust::device_pointer_cast(shapes);
-		thrust::sort(thrustShapes + start, thrustShapes + end, comparator);
+		thrust::sort(shapes + start, shapes + end, comparator);
 
 		int middle = start + objectSpan / 2;
 
