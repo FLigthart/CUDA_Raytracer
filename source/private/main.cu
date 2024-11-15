@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <list>
 #include <string>
 
 #include "../public/bvh/bvh.h"
@@ -248,9 +249,6 @@ int main()
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaDeviceSynchronize());
 
-    Camera* d_camera;
-    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera)));
-
     // Different scenes the user can choose out of.
     std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres"};
 
@@ -258,19 +256,21 @@ int main()
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
 
     Shape** d_shapeList;
+    int listSize, treeSize;
 
-    bvhNode* d_bhvTree;
+    bvhNode *d_bhvTree, *h_bhvTree;
+
+    Camera* d_camera;
+    checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_camera), sizeof(Camera)));
 
     switch (worldTypeIndex)
 	{
 	    case 1:
-            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), basicSphereScene::getObjectCount() * sizeof(Shape*)));
-	        basicSphereScene::createScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
+	        basicSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,d_camera, pX, pY, d_randomState2, listSize, treeSize);
 	        break;
 
         case 2:
-            checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_shapeList), randomSpheresScene::getObjectCount() * sizeof(Shape*)));
-            randomSpheresScene::createScene(d_bhvTree, d_shapeList, d_camera, pX, pY, d_randomState2);
+            randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, d_camera, pX, pY, d_randomState2, listSize, treeSize);
             break;
 
 	    default:
@@ -278,6 +278,11 @@ int main()
     }
 
     checkCudaErrors(cudaGetLastError());
+
+    checkCudaErrors(cudaMemcpy(h_bhvTree, d_bhvTree, listSize * sizeof(bvhNode), cudaMemcpyDeviceToHost));
+
+    int treeHeight = bvhNode::buildTree(h_bhvTree, listSize);
+    checkCudaErrors(cudaMemcpy(d_bhvTree, h_bhvTree, treeSize * sizeof(bvhNode), cudaMemcpyHostToDevice));
 
     // Render a buffer
     dim3 blocks(pX / threadX + 1, pY / threadY + 1); //Block of one warp size.

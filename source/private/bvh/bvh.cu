@@ -49,7 +49,7 @@ struct _bvhNode
 			: (axis == 1) ? boxYCompare
 			: boxZCompare;
 
-		size_t objectSpan = end - start;
+		int objectSpan = end - start;
 
 		if (objectSpan == 1) 
 		{
@@ -120,12 +120,6 @@ struct _bvhNode
 	}
 };
 
-__host__ void bvhNode::allocateTree(bvhNode* nodes, int size)
-{
-	int treeSize = 2 * size;
-	checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&nodes), treeSize * sizeof(bvhNode)));
-}
-
 __host__ int bvhNode::buildTree(bvhNode* nodes, int size)
 {
 	std::vector<bvhDataNode> dataNodes(size);
@@ -135,7 +129,7 @@ __host__ int bvhNode::buildTree(bvhNode* nodes, int size)
 		dataNodes.push_back(nodes[i]);
 	}
 
-	auto root = std::make_shared<_bvhNode>(dataNodes, 0, dataNodes.size());
+	auto root = std::make_shared<_bvhNode>(dataNodes, 0, size);
 
 	int treeHeight = 0;
 	std::vector<bvhNode> linearizedNodes = _bvhNode::toLinearizedBvhNode(root, treeHeight);

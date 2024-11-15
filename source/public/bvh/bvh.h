@@ -36,8 +36,6 @@ struct bvhNode : bvhDataNode
 	__device__ static bool checkIntersection(const bvhNode* nodes, Ray& ray, interval hitRange, HitInformation& hitInformation);
 
 	__host__ static int buildTree(bvhNode* nodes, int size);
-
-	__host__ static void allocateTree(bvhNode* nodes, int size);
 };
 
 #endif

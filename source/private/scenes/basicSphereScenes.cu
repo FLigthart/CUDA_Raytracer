@@ -8,6 +8,7 @@
 #include "../../public/materials/metal.h"
 #include "../../public/camera.h"
 #include "../../public/bvh/bvh.h"
+#include "../../public/util.h"
 
 __global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount, curandState* localCurandState)
 {
@@ -34,9 +35,9 @@ __global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, 
     }
 }
 
-void basicSphereScene::createScene(bvhNode*& d_bvhTree, Shape**& d_shapeList, Camera*& d_camera, int pX, int pY, curandState* localCurandState)
+void basicSphereScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, curandState* localCurandState, int& listSize, int& treeSize)
 {
-    bvhNode::allocateTree(d_bvhTree, objectCount);
+    INIT_LIST_AND_TREE(objectCount);
 
     initializeBasicSpheres<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
 }
