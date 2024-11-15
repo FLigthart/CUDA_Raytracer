@@ -55,9 +55,10 @@ struct _bvhNode
 		{
 			data = objects[start];
 			bbox = objects[start].bbox;
+			return;
 		}
 
-		std::sort(objects.begin() + start, objects.end() + end, comparator);
+		std::sort(objects.begin() + start, objects.begin() + end, comparator);
 
 		size_t middle = start + objectSpan / 2;
 
@@ -122,7 +123,7 @@ struct _bvhNode
 
 __host__ int bvhNode::buildTree(bvhNode* nodes, int size)
 {
-	std::vector<bvhDataNode> dataNodes(size);
+	std::vector<bvhDataNode> dataNodes;
 	dataNodes.reserve(size);
 	for (int i = 0; i < size; i++)
 	{
@@ -130,20 +131,29 @@ __host__ int bvhNode::buildTree(bvhNode* nodes, int size)
 	}
 
 	auto root = std::make_shared<_bvhNode>(dataNodes, 0, size);
+	std::clog << "bvh tree built" << std::endl;
 
 	int treeHeight = 0;
 	std::vector<bvhNode> linearizedNodes = _bvhNode::toLinearizedBvhNode(root, treeHeight);
+	std::clog << "bvh tree linearized" << std::endl;
+
+	std::clog << "size of nodes: " << linearizedNodes.size() << std::endl; // should be "size"
+	std::clog << "original size: " << size << std::endl;                    // should be "size"
+	std::clog << "tree height: " << treeHeight << std::endl;
 
 	if (treeHeight > MAX_TREE_HEIGHT)
 	{
+		std::cerr << "tree height exceeds max tree height " << MAX_TREE_HEIGHT << std::endl;
+		std::cerr << "you may want to increase MAX_TREE_HEIGHT and recompile" << std::endl;
 		throw std::runtime_error("Tree height exceeds maximum tree height");
 	}
 
 	for (int i = 0; i < linearizedNodes.size(); i++)
 	{
+		std::cout << "node " << i << " left: " << linearizedNodes[i].left << ", right: " << linearizedNodes[i].right << std::endl;
 		nodes[i] = linearizedNodes[i];
 	}
-
+	std::clog << "bvh tree copied back" << std::endl;
 	return treeHeight;
 }
 
