@@ -12,7 +12,7 @@ class aabb
 public:
 	interval x, y, z;
 
-	__host__ __device__ aabb() = default; // The default AABB is empty
+	aabb() = default; // The default AABB is empty
 
 	__host__ __device__ aabb(const interval& x, const interval& y, const interval& z)
 		: x(x), y(y), z(z) {}
@@ -39,7 +39,7 @@ public:
 		return x;
 	}
 
-	__device__ bool checkIntersection (const Ray& ray, interval rayT) const
+	__host__ __device__ bool checkIntersection (const Ray& ray, interval rayT) const
 	{
 		const vec3& rayOrigin = ray.origin();
 		const vec3& rayDirection = ray.direction();
@@ -52,11 +52,13 @@ public:
 			float t0 = (ax.min - rayOrigin[axis]) * adinv;
 			float t1 = (ax.max - rayOrigin[axis]) * adinv;
 
-			if (t0 < t1) {
+			if (t0 < t1)
+			{
 				if (t0 > rayT.min) rayT.min = t0;
 				if (t1 < rayT.max) rayT.max = t1;
 			}
-			else {
+			else 
+			{
 				if (t1 > rayT.min) rayT.min = t1;
 				if (t0 < rayT.max) rayT.max = t0;
 			}
@@ -67,5 +69,17 @@ public:
 
 		return true;
 	}
+
+	__host__ __device__ int longestAxis() const
+	{
+		if (x.size() > z.size())
+			return x.size() > z.size() ? 0 : 2;
+		else
+			return y.size() > z.size() ? 1 : 2;
+	}
+
+	__host__ __device__ static aabb empty() { return aabb(interval::empty(), interval::empty(), interval::empty()); }
+	__host__ __device__ static aabb universe() { return aabb(interval::universe(), interval::universe(), interval::universe()); }
 };
+
 #endif

@@ -3,8 +3,11 @@
 #ifndef BASICSPHERESCENE_H
 #define BASICSPHERESCENE_H
 
+#include <curand_kernel.h>
+
 #include "cuda_runtime.h"
 
+struct bvhNode;
 class Shape;
 class Camera;
 
@@ -12,9 +15,9 @@ class basicSphereScene
 {
 public:
 
-	static void CreateScene(Shape** d_shapeList, Shape** d_world, Camera** d_camera, int pX, int pY);
+	static void createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, curandState* localCurandState, int& listSize, int& treeSize);
 
-	__host__ __device__ static int GetObjectCount()
+	__host__ __device__ static int getObjectCount()
 	{
 		return objectCount;
 	}
