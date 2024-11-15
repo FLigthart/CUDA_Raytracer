@@ -18,7 +18,15 @@ struct HitInformation
 	vec3 position;
 	material* mat;
 
-	__host__ __device__ HitInformation() { distance = INFINITY; position = vec3::zero(); normal = vec3::zero(); }
+	float u;
+	float v;
+
+	__host__ __device__ HitInformation()
+	{
+		distance = INFINITY;
+		position = vec3::zero();
+		normal = vec3::zero();
+	}
 };
 
 #endif

@@ -10,9 +10,7 @@
 #include "../../public/bvh/bvh.h"
 #include "../../public/util.h"
 
-#define RND (curand_uniform(&localRandomState))
-
-__global__ void InitializeScene(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount, curandState* randomState)
+__global__ void initializeRandomScene(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount, curandState* randomState)
 {
     if (threadIdx.x == 0 && blockIdx.x == 0)
     {
@@ -57,12 +55,14 @@ __global__ void InitializeScene(Shape** d_shapeList, bvhNode* d_bvhTree, Camera*
 
         bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
-        *d_camera = Camera(vec3(13.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-12.0f, 155.0f), 30.0f, pX, pY, AAMethod::MSAA100, 10.0f, 0.05f); // standard camera
+        *d_camera = Camera(vec3(13.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f),
+            vec2(-12.0f, 155.0f), 30.0f, pX, pY, AAMethod::MSAA100,
+            10.0f, 0.05f);
     }
 }
 void randomSpheresScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, curandState* localCurandState, int& listSize, int& treeSize)
 {
     INIT_LIST_AND_TREE(objectCount);
 
-    InitializeScene<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
+    initializeRandomScene<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
 }

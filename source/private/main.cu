@@ -5,6 +5,7 @@
 
 #include "../public/bvh/bvh.h"
 #include "../public/scenes/basicSphereScenes.h"
+#include "../public/scenes/checkeredSphereScene.h"
 #include "../public/scenes/randomSpheresScene.h"
 
 using namespace std;
@@ -250,7 +251,7 @@ int main()
     checkCudaErrors(cudaDeviceSynchronize());
 
     // Different scenes the user can choose out of.
-    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres"};
+    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres"};
 
     int worldTypeIndex = askUserForWorldType(worlds);
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
@@ -266,12 +267,18 @@ int main()
     switch (worldTypeIndex)
 	{
 	    case 1:
-	        basicSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,d_camera, pX, pY, d_randomState2, listSize, treeSize);
+	        basicSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
+                d_camera, pX, pY, d_randomState2, listSize, treeSize);
 	        break;
 
         case 2:
-            randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, d_camera, pX, pY, d_randomState2, listSize, treeSize);
+            randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
+                d_camera, pX, pY, d_randomState2, listSize, treeSize);
             break;
+		case 3:
+			checkeredSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+            d_camera, pX, pY, d_randomState2, listSize, treeSize);
+    		break;
 
 	    default:
             exit(1);

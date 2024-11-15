@@ -12,6 +12,8 @@
     h_bvhTree = new bvhNode[treeSize];                                             \
     checkCudaErrors(cudaMalloc((void **)&d_bvhTree, treeSize * sizeof(bvhNode)));
 
+#define RND (curand_uniform(&localRandomState))
+
 inline void check_cuda(cudaError_t result, char const* const function, const char* const file, int const line)
 {
     if (result)

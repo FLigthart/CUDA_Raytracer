@@ -9,14 +9,17 @@
 #include "../../public/camera.h"
 #include "../../public/bvh/bvh.h"
 #include "../../public/util.h"
+#include "../../public/textures/checkerTexture.h"
 
 __global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount, curandState* localCurandState)
 {
     if (threadIdx.x == 0 && blockIdx.x == 0)
     {
+        auto checker = new checkerTexture(0.32f, color4(0.2f, 0.3f, 0.1f, 1.0f), color4(0.9f, 0.9f, 0.9f, 1.0f));
+
         d_shapeList[0] = new Sphere(vec3(0.0f, 1.0f, 2.0f), 1.2f, new lambertian(color4(0.1f, 0.2f, 0.5f, 1.0f)));
 
-        d_shapeList[1] = new Sphere(vec3(0.0f, -20.0f, 5.0f), 20.0f, new lambertian(color4(0.8f, 0.8f, 0.0f, 1.0f)));
+        d_shapeList[1] = new Sphere(vec3(0.0f, -20.0f, 5.0f), 20.0f, new lambertian(checker));
 
         d_shapeList[2] = new Sphere(vec3(2.0f, 0.5f, 2.0f), 0.75f, new metal(color4(0.69f, 0.55f, 0.34f, 1.0f), 0.8f));
 
