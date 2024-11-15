@@ -43,7 +43,13 @@ struct _bvhNode
 
 	_bvhNode(std::vector<bvhDataNode>& objects, size_t start, size_t end)
 	{
-		int axis = mathOperations::randomInt(0, 2);
+		bbox = aabb::empty();
+		for (size_t objectIndex = start; objectIndex < end; objectIndex++)
+		{
+			bbox = aabb(bbox, objects[objectIndex].bbox);
+		}
+
+		int axis = bbox.longestAxis();
 
 		auto comparator = (axis == 0) ? boxXCompare
 			: (axis == 1) ? boxYCompare
@@ -64,8 +70,6 @@ struct _bvhNode
 
 		left = std::make_shared<_bvhNode>(objects, start, middle);
 		right = std::make_shared<_bvhNode>(objects, middle, end);
-
-		bbox = aabb(left->bbox, right->bbox);
 	}
 
 	static std::vector<bvhNode> toLinearizedBvhNode(std::shared_ptr<_bvhNode> root, int& treeHeight)
