@@ -84,6 +84,7 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+	<CudaCompile Include="source\private\bvh\bvh.cu" />
     <CudaCompile Include="source\private\camera.cu" />
     <CudaCompile Include="source\private\main.cu" />
     <CudaCompile Include="source\private\scenes\basicSphereScenes.cu" />
@@ -91,6 +92,7 @@
     <CudaCompile Include="source\private\shapes\sphere.cu" />
   </ItemGroup>
   <ItemGroup>
+	<ClInclude Include="source\public\bvh\bvh.h" />
     <ClInclude Include="source\public\bvh\aabb.h" />
     <ClInclude Include="source\public\util.h" />
     <ClInclude Include="source\public\materials\dielectric.h" />
