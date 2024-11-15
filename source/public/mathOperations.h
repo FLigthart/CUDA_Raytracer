@@ -37,7 +37,7 @@ public:
 		return value;
 	}
 
-	__device__ static int randomInt(int min, int max)
+	__host__ static int randomInt(int min, int max)
 	{
 		std::random_device rd;
 		std::mt19937 gen(rd());

@@ -63,7 +63,7 @@ __device__ color4 colorPerSample(Ray& r, bvhNode* world, curandState* localRando
     {
         HitInformation hitInformation;
 
-        if (world->checkIntersection(currentRay, interval(0.001f, INFINITY), hitInformation))
+        if (bvhNode::checkIntersection(world, currentRay, interval(0.001f, INFINITY), hitInformation))
         {
             Ray scattered;
             color4 attenuation; // attenuation for each object the ray bounces to.

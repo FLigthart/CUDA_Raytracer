@@ -14,6 +14,7 @@ public:
 
 	float radius;
 	material* mat;
+	aabb bbox;
 
 	// Stationary Sphere
 	__device__ Sphere(vec3 position, float _radius, material* _mat)
@@ -42,15 +43,12 @@ public:
 
 	__device__ bool inline checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation) const override;
 
-	__device__ virtual aabb boundingBox() const override { return bbox; }
+	__device__ aabb boundingBox() const override { return bbox; }
 
 	__device__ ~Sphere()
 	{
 		 delete mat;
 	}
-
-private:
-	aabb bbox;
 };
 
 __device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation) const

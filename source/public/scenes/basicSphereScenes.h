@@ -7,7 +7,7 @@
 
 #include "cuda_runtime.h"
 
-class bvhNode;
+struct bvhNode;
 class Shape;
 class Camera;
 
