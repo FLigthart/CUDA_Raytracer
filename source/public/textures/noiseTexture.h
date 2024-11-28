@@ -6,7 +6,7 @@
 #include "perlin.h"
 #include "texture.h"
 
-class noiseTexture : texture
+class noiseTexture : public texture
 {
 public:
 	__device__ noiseTexture(float sc, curandState* localRandomState) : noise(localRandomState), scale(sc) {}
