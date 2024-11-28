@@ -92,7 +92,7 @@ __device__ void perlin::permute(int* p, int n, curandState* localRandomState)
 	}
 }
 
-float perlin::perlinInterpolate(vec3 c[2][2][2], float u, float v, float w)
+__device__ float perlin::perlinInterpolate(vec3 c[2][2][2], float u, float v, float w)
 {
 	float uu = u * u * (3.f - 2.f * u);
 	float vv = v * v * (3.f - 2.f * v);
