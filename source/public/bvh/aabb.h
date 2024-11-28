@@ -15,7 +15,10 @@ public:
 	aabb() = default; // The default AABB is empty
 
 	__host__ __device__ aabb(const interval& x, const interval& y, const interval& z)
-		: x(x), y(y), z(z) {}
+		: x(x), y(y), z(z)
+	{
+		padToMinimums(); //Ensures that volume is never 0 to prevent unexpected behaviour with intersections
+	}
 
 	// a and b are extrema for the bounding box.
 	__host__ __device__ aabb(const vec3& a, const vec3& b)
@@ -23,6 +26,8 @@ public:
 		x = interval::minToMax(a.x(), b.x());
 		y = interval::minToMax(a.y(), b.y());
 		z = interval::minToMax(a.z(), b.z());
+
+		padToMinimums();
 	}
 
 	__host__ __device__ aabb(const aabb& box0, const aabb& box1)
@@ -77,6 +82,15 @@ public:
 		else
 			return y.size() > z.size() ? 1 : 2;
 	}
+
+	// Adjust the AABB so that the volume of the AABB > 0
+	__host__ __device__ void padToMinimums()
+	{
+		float delta = 0.0001f;
+		if (x.size() < delta) x = x.expand(delta);
+		if (y.size() < delta) y = y.expand(delta);
+		if (z.size() < delta) z = z.expand(delta);
+ 	}
 
 	__host__ __device__ static aabb empty() { return aabb(interval::empty(), interval::empty(), interval::empty()); }
 	__host__ __device__ static aabb universe() { return aabb(interval::universe(), interval::universe(), interval::universe()); }

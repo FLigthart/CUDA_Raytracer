@@ -90,7 +90,9 @@
     <CudaCompile Include="source\private\scenes\basicSphereScenes.cu" />
     <CudaCompile Include="source\private\scenes\checkeredSphereScene.cu" />
     <CudaCompile Include="source\private\scenes\perlinSphereScene.cu" />
+    <CudaCompile Include="source\private\scenes\quadsScene.cu" />
     <CudaCompile Include="source\private\scenes\randomSpheresScene.cu" />
+    <CudaCompile Include="source\private\shapes\quad.cu" />
     <CudaCompile Include="source\private\shapes\sphere.cu" />
     <CudaCompile Include="source\private\textures\imageTexture.cu" />
     <CudaCompile Include="source\private\textures\noiseTexture.cu" />
@@ -102,6 +104,8 @@
     <ClInclude Include="source\public\bvh\aabb.h" />
     <ClInclude Include="source\public\scenes\checkeredSphereScene.h" />
     <ClInclude Include="source\public\scenes\perlinSphereScene.h" />
+    <ClInclude Include="source\public\scenes\quadsScene.h" />
+    <ClInclude Include="source\public\shapes\quad.h" />
     <ClInclude Include="source\public\textures\checkerTexture.h" />
     <ClInclude Include="source\public\textures\imageTexture.h" />
     <ClInclude Include="source\public\textures\noiseTexture.h" />

@@ -7,6 +7,7 @@
 #include "../public/scenes/basicSphereScenes.h"
 #include "../public/scenes/checkeredSphereScene.h"
 #include "../public/scenes/perlinSphereScene.h"
+#include "../public/scenes/quadsScene.h"
 #include "../public/scenes/randomSpheresScene.h"
 
 using namespace std;
@@ -269,7 +270,7 @@ int main()
     checkCudaErrors(cudaDeviceSynchronize());
 
     // Different scenes the user can choose out of.
-    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres", "Perlin Spheres"};
+    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres", "Perlin Spheres", "Quads"};
 
     int worldTypeIndex = askUserForWorldType(worlds);
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
@@ -295,6 +296,7 @@ int main()
             randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
                 d_camera, pX, pY, randomSeed, listSize, treeSize);
             break;
+
 		case 3:
 			checkeredSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
             d_camera, pX, pY, listSize, treeSize);
@@ -304,6 +306,11 @@ int main()
 	        perlinSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
                 d_camera, pX, pY, randomSeed, listSize, treeSize);
             break;
+
+	    case 5:
+	        quadsScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+            d_camera, pX, pY, listSize, treeSize);
+		    break;
 
 	    default:
             exit(1);

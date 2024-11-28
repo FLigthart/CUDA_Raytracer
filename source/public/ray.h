@@ -9,8 +9,8 @@ class Ray
 {
 public:
 	Ray() = default;
-    __host__ __device__ Ray(const vec3& origin, const vec3& position) { A = origin; B = position; _time = 0.0f; }
-    __host__ __device__ Ray(const vec3& origin, const vec3& position, float time) { A = origin; B = position; _time = time; }
+    __host__ __device__ Ray(const vec3& origin, const vec3& direction) { A = origin; B = direction; _time = 0.0f; }
+    __host__ __device__ Ray(const vec3& origin, const vec3& direction, float time) { A = origin; B = direction; _time = time; }
 
     __host__ __device__ static Ray zero() { return Ray(vec3::zero(), vec3::zero()); }
 

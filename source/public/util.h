@@ -5,6 +5,8 @@
 
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ );
 
+#define VERY_SMALL_NUMBER 0.00000001f // Useful for comparisons due to floating number inaccuracy
+
 #define INIT_LIST_AND_TREE(size)                                                   \
     listSize = (size);                                                             \
     checkCudaErrors(cudaMalloc((void **)&d_shapeList, listSize * sizeof(Shape*))); \
