@@ -14,7 +14,6 @@ class Shape
 {
 
 public:
-
 	ShapeTransform transform;
 
 	__device__ virtual bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const = 0;

@@ -14,6 +14,10 @@
 
 #define RND (curand_uniform(&localRandomState))
 
+#define INIT_RAND_LOCAL()         \
+    curandState localRandomState; \
+    curand_init(randomSeed, 0, 0, &localRandomState);
+
 inline void check_cuda(cudaError_t result, char const* const function, const char* const file, int const line)
 {
     if (result)

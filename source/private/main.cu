@@ -6,6 +6,7 @@
 #include "../public/bvh/bvh.h"
 #include "../public/scenes/basicSphereScenes.h"
 #include "../public/scenes/checkeredSphereScene.h"
+#include "../public/scenes/perlinSphereScene.h"
 #include "../public/scenes/randomSpheresScene.h"
 
 using namespace std;
@@ -220,6 +221,23 @@ __host__ int askUserForWorldType(const std::vector<std::string>& worlds)
     return inputTillValid(errorMessage, worlds);
 }
 
+__host__ int askUserForSeed()
+{
+    std::cout << "Enter a seed to be used for randomization (integer)" << '\n';
+    string potentialSeed;
+	std::cin >> potentialSeed;
+
+    try 
+    {
+        return std::stoi(potentialSeed);
+    }
+    catch (...)
+    {
+        std::cerr << "ERROR: Invalid Seed Number.\n";
+        return askUserForSeed();
+    }
+}
+
 int main()
 {
     int pX = 1920;
@@ -251,10 +269,12 @@ int main()
     checkCudaErrors(cudaDeviceSynchronize());
 
     // Different scenes the user can choose out of.
-    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres"};
+    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres", "Perlin Spheres"};
 
     int worldTypeIndex = askUserForWorldType(worlds);
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
+
+    int randomSeed = askUserForSeed();
 
     Shape** d_shapeList;
     int listSize, treeSize;
@@ -268,17 +288,22 @@ int main()
 	{
 	    case 1:
 	        basicSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
-                d_camera, pX, pY, d_randomState2, listSize, treeSize);
+                d_camera, pX, pY, listSize, treeSize);
 	        break;
 
         case 2:
             randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
-                d_camera, pX, pY, d_randomState2, listSize, treeSize);
+                d_camera, pX, pY, randomSeed, listSize, treeSize);
             break;
 		case 3:
 			checkeredSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-            d_camera, pX, pY, d_randomState2, listSize, treeSize);
+            d_camera, pX, pY, listSize, treeSize);
     		break;
+
+	    case 4:
+	        perlinSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+                d_camera, pX, pY, randomSeed, listSize, treeSize);
+            break;
 
 	    default:
             exit(1);
