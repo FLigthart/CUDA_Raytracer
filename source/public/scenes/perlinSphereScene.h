@@ -1,17 +1,17 @@
 #pragma once
 
-#ifndef RANDOMSPHERESSCENE_H
-#define RANDOMSPHERESSCENE_H
+#ifndef PERLIN_SPEHRE_SCENE_H
+#define PERLIN_SPHERE_SCENE_H
 
 #include <curand_kernel.h>
 
 #include "cuda_runtime.h"
 
+class Camera;
 struct bvhNode;
 class Shape;
-class Camera;
 
-class randomSpheresScene
+class perlinSphereScene
 {
 public:
 
@@ -23,8 +23,7 @@ public:
 	}
 
 private:
-
-	static constexpr int objectCount = 22 * 22 + 1 + 3;
+	static constexpr int objectCount = 2;
 };
 
 #endif

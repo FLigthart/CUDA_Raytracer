@@ -89,17 +89,23 @@
     <CudaCompile Include="source\private\main.cu" />
     <CudaCompile Include="source\private\scenes\basicSphereScenes.cu" />
     <CudaCompile Include="source\private\scenes\checkeredSphereScene.cu" />
+    <CudaCompile Include="source\private\scenes\perlinSphereScene.cu" />
     <CudaCompile Include="source\private\scenes\randomSpheresScene.cu" />
     <CudaCompile Include="source\private\shapes\sphere.cu" />
     <CudaCompile Include="source\private\textures\imageTexture.cu" />
+    <CudaCompile Include="source\private\textures\noiseTexture.cu" />
+    <CudaCompile Include="source\private\textures\perlin.cu" />
     <CudaCompile Include="source\private\textures\textureLoader.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\public\bvh\bvh.h" />
     <ClInclude Include="source\public\bvh\aabb.h" />
     <ClInclude Include="source\public\scenes\checkeredSphereScene.h" />
+    <ClInclude Include="source\public\scenes\perlinSphereScene.h" />
     <ClInclude Include="source\public\textures\checkerTexture.h" />
     <ClInclude Include="source\public\textures\imageTexture.h" />
+    <ClInclude Include="source\public\textures\noiseTexture.h" />
+    <ClInclude Include="source\public\textures\perlin.h" />
     <ClInclude Include="source\public\textures\solidColor.h" />
     <ClInclude Include="source\public\textures\texture.h" />
     <ClInclude Include="source\public\util.h" />

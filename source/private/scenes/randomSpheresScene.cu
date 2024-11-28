@@ -10,11 +10,11 @@
 #include "../../public/bvh/bvh.h"
 #include "../../public/util.h"
 
-__global__ void initializeRandomScene(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount, curandState* randomState)
+__global__ void initializeRandomScene(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount, int randomSeed)
 {
     if (threadIdx.x == 0 && blockIdx.x == 0)
     {
-        curandState localRandomState = *randomState;
+        INIT_RAND_LOCAL();
 
         material* groundMaterial = new lambertian(color4(0.5f, 0.5f, 0.5f, 1.0f));
 
@@ -29,7 +29,7 @@ __global__ void initializeRandomScene(Shape** d_shapeList, bvhNode* d_bvhTree, C
                 vec3 center(static_cast<float>(a) + RND * 0.5f, 0.2f, static_cast<float>(b) + RND * 0.5f);
                 if (chosenMaterial < 0.8f)
                 {
-                    vec3 centerTwo = center + vec3(0.0f, 0.25f * curand_uniform(randomState), 0.0f);
+                    vec3 centerTwo = center + vec3(0.0f, 0.25f * curand_uniform(&localRandomState), 0.0f);
                     d_shapeList[i++] = new Sphere(center, centerTwo, 0.2f,
                         new lambertian(color4(RND * RND, RND * RND, RND * RND, 1.0f)));
                 }
@@ -51,8 +51,6 @@ __global__ void initializeRandomScene(Shape** d_shapeList, bvhNode* d_bvhTree, C
         
         d_shapeList[i++] = new Sphere(vec3(4.0f, 1.0f, 0.0f), 1.0f, new metal(color4(0.7f, 0.6f, 0.5f, 1.0f), 0.0));
 
-        *randomState = localRandomState;
-
         bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
         *d_camera = Camera(vec3(13.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f),
@@ -60,9 +58,9 @@ __global__ void initializeRandomScene(Shape** d_shapeList, bvhNode* d_bvhTree, C
             10.0f, 0.05f);
     }
 }
-void randomSpheresScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, curandState* localCurandState, int& listSize, int& treeSize)
+void randomSpheresScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, int randomSeed, int& listSize, int& treeSize)
 {
     INIT_LIST_AND_TREE(objectCount);
 
-    initializeRandomScene<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
+    initializeRandomScene<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, randomSeed);
 }

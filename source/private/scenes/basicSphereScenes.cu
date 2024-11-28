@@ -11,7 +11,7 @@
 #include "../../public/util.h"
 #include "../../public/textures/checkerTexture.h"
 
-__global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount, curandState* localCurandState)
+__global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, Camera* d_camera, int pX, int pY, int objectCount)
 {
     if (threadIdx.x == 0 && blockIdx.x == 0)
     {
@@ -39,9 +39,9 @@ __global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, 
 }
 
 
-void basicSphereScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, curandState* localCurandState, int& listSize, int& treeSize)
+void basicSphereScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, int& listSize, int& treeSize)
 {
     INIT_LIST_AND_TREE(objectCount);
 
-    initializeBasicSpheres<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount, localCurandState);
+    initializeBasicSpheres<<<1, 1>>>(d_shapeList, d_bvhTree, d_camera, pX, pY, objectCount);
 }
