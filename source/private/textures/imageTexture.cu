@@ -9,7 +9,6 @@
 __host__ imageTexture::imageTexture(const char* filePath)
 {
 	pixelData = textureLoader::loadImage(filePath, width, height, channels);
-	pixelDataSize = width * height * channels * sizeof(unsigned char);
 
 	if (pixelData == nullptr)
 	{
