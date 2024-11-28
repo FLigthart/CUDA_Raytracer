@@ -34,9 +34,10 @@ __global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, 
 
         bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
-        *d_camera = Camera(vec3(0.0f, 1.5f, -3.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 90.0f), 45.0f, pX, pY, AAMethod::MSAA1000, 5.0f, 0.0f); // standard camera
+        *d_camera = Camera(vec3(0.0f, 1.5f, -3.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 90.0f), 45.0f, pX, pY, AAMethod::MSAA100, 5.0f, 0.0f); // standard camera
     }
 }
+
 
 void basicSphereScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, curandState* localCurandState, int& listSize, int& treeSize)
 {

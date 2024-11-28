@@ -5,7 +5,7 @@
 #include "../../public/textures/imageTexture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../../external/stb_image.h"
+#include "../../../external/stb_image.h"
 
 __host__ unsigned char* textureLoader::loadImage(const char* filePath, int& width, int& height, int& channels)
 {
@@ -13,7 +13,6 @@ __host__ unsigned char* textureLoader::loadImage(const char* filePath, int& widt
 	if (data == nullptr)
 	{
 		std::cerr << "ERROR: Could not load image " << filePath << std::endl;
-		exit(1);
 	}
 
 	return data;

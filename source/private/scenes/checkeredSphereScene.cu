@@ -31,7 +31,7 @@ void checkeredSphereScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree
 {
 	INIT_LIST_AND_TREE(objectCount);
 
-	auto h_earthTexture = imageTexture("D:/HomeProjects/CUDA_Raytracer/CUDA_Raytracer/source/assets/earthmap.jpg");
+	auto h_earthTexture = imageTexture("../../CUDA_Raytracer/source/assets/earthmap.jpg");
 	unsigned char* d_earthTextureData;
 	checkCudaErrors(cudaMalloc(reinterpret_cast<void**>(&d_earthTextureData), h_earthTexture.pixelDataSize));
 	checkCudaErrors(cudaMemcpy(d_earthTextureData, h_earthTexture.pixelData, h_earthTexture.pixelDataSize, cudaMemcpyHostToDevice));
