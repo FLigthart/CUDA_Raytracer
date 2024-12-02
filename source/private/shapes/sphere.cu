@@ -51,7 +51,7 @@ __device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInf
 __device__ void Sphere::getSphereUv(const vec3& point, float& u, float& v)
 {
 	float theta = acos(-point.y());
-	float phi = atan2(point.z(), point.x()) + CUDART_PI_F;
+	float phi = atan2(-point.z(), point.x()) + CUDART_PI_F;
 
 	u = phi / (2 * CUDART_PI_F);
 	v = theta / CUDART_PI_F;

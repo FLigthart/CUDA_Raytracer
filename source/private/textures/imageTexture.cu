@@ -38,7 +38,7 @@ __host__ __device__ imageTexture::~imageTexture()
 
 __device__ color4 imageTexture::value(float u, float v, const vec3& point) const
 {
-	u = interval(0, 1).clamps(u);
+	u = 1.0f - interval(0, 1).clamps(u);
 	v = 1.0f - interval(0, 1).clamps(v);
 
 	int i = static_cast<int>(u * width);

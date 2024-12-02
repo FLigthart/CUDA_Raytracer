@@ -25,8 +25,8 @@ public:
 		normal = cross(b - a, c - a).normalized();
 
 		uva = vec2::zero();
-		uvb = vec2::zero();
-		uvc = vec2::zero();
+		uvb = vec2(1.0f, 0.0f);
+		uvc = vec2::one();
 
 		setBoundingBox();
 	}
