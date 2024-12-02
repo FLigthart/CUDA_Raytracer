@@ -36,6 +36,6 @@ private:
 	__device__ void setBoundingBox();
 
 	__device__ bool isInterior(float a, float b, HitInformation& hitInformation) const;
-}; 
+};
 
 #endif

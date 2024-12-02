@@ -31,3 +31,13 @@ inline void check_cuda(cudaError_t result, char const* const function, const cha
         exit(99);
     }
 }
+
+__host__ __device__ static float minimum(float one, float two)
+{
+    return one < two ? one : two;
+}
+
+__host__ __device__ static float maximum(float one, float two)
+{
+    return one > two ? one : two;
+}
