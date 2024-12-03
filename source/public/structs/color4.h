@@ -47,6 +47,7 @@ public:
     __host__ __device__ static color4 red() { return color4(1.0f, 0.0f, 0.0f, 1.0f); }
     __host__ __device__ static color4 green() { return color4(0.0f, 1.0f, 0.0f, 1.0f); }
     __host__ __device__ static color4 blue() { return color4(0.0f, 0.0f, 1.0f, 1.0f); }
+    __host__ __device__ static color4 standardBackground() { return color4(0.7f, 0.8f, 1.0f, 1.0f); } // Light-blueish color
 };
 
 /*

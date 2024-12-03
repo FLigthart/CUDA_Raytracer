@@ -39,7 +39,7 @@ __device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInf
 
 	hitInformation.position = ray.origin() + ray.direction() * hitInformation.distance;
 
-	hitInformation.normal = (hitInformation.position - currentCenter) / radius;
+	hitInformation.normal = getFaceNormal(ray, (hitInformation.position - currentCenter) / radius);
 
 	getSphereUv(hitInformation.normal, hitInformation.u, hitInformation.v);
 

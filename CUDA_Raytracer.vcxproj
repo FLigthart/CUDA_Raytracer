@@ -89,9 +89,11 @@
     <CudaCompile Include="source\private\main.cu" />
     <CudaCompile Include="source\private\scenes\basicSphereScenes.cu" />
     <CudaCompile Include="source\private\scenes\checkeredSphereScene.cu" />
+    <CudaCompile Include="source\private\scenes\cornellBoxScene.cu" />
     <CudaCompile Include="source\private\scenes\perlinSphereScene.cu" />
     <CudaCompile Include="source\private\scenes\quadsScene.cu" />
     <CudaCompile Include="source\private\scenes\randomSpheresScene.cu" />
+    <CudaCompile Include="source\private\scenes\simpleLightScene.cu" />
     <CudaCompile Include="source\private\shapes\quad.cu" />
     <CudaCompile Include="source\private\shapes\sphere.cu" />
     <CudaCompile Include="source\private\shapes\triangle.cu" />
@@ -103,9 +105,12 @@
   <ItemGroup>
     <ClInclude Include="source\public\bvh\bvh.h" />
     <ClInclude Include="source\public\bvh\aabb.h" />
+    <ClInclude Include="source\public\lights\diffuseLight.h" />
     <ClInclude Include="source\public\scenes\checkeredSphereScene.h" />
+    <ClInclude Include="source\public\scenes\cornellBoxScene.h" />
     <ClInclude Include="source\public\scenes\perlinSphereScene.h" />
     <ClInclude Include="source\public\scenes\quadsScene.h" />
+    <ClInclude Include="source\public\scenes\simpleLightScene.h" />
     <ClInclude Include="source\public\shapes\quad.h" />
     <ClInclude Include="source\public\shapes\triangle.h" />
     <ClInclude Include="source\public\textures\checkerTexture.h" />

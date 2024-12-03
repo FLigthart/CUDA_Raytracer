@@ -19,4 +19,10 @@ public:
 	__device__ virtual bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const = 0;
 
 	__device__ virtual aabb boundingBox() const = 0;
+
+	__device__ static vec3 getFaceNormal(const Ray& ray, const vec3& outwardNormal)
+	{
+		bool frontFace = dot(ray.direction(), outwardNormal) < 0;
+		return frontFace ? outwardNormal : -outwardNormal;
+	}
 };

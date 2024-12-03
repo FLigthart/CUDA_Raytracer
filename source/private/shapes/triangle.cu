@@ -9,7 +9,7 @@ __device__ bool triangle::checkIntersection(Ray& ray, interval hitRange, HitInfo
 	if (distance < 0)
 		return false;
 
-	vec3 intersectionPoint = ray.origin() + ray.direction() * distance;
+	vec3 intersectionPoint = ray.at(distance);
 
 	vec3 v1 = cross(b - a, intersectionPoint - a);
 	vec3 v2 = cross(a - c, intersectionPoint - c);
@@ -23,7 +23,7 @@ __device__ bool triangle::checkIntersection(Ray& ray, interval hitRange, HitInfo
 	{
 		hitInformation.position = intersectionPoint;
 		hitInformation.distance = distance;
-		hitInformation.normal = normal;
+		hitInformation.normal = getFaceNormal(ray, normal);
 		hitInformation.mat = mat;
 
 		// Calculate UV Coordinates

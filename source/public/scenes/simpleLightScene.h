@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef BASICSPHERESCENE_H
-#define BASICSPHERESCENE_H
+#ifndef SIMPLE_LIGHT_SCENE_H
+#define SIMPLE_LIGHT_SCENE_H
 
 #include <curand_kernel.h>
 #include "cuda_runtime.h"
@@ -10,11 +10,11 @@ struct bvhNode;
 class Shape;
 class Camera;
 
-class basicSphereScene
+class simpleLightScene
 {
 public:
 
-	static void createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, int& listSize, int& treeSize);
+	static void createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY, int& listSize, int& treeSize, int localRandomSeed);
 
 	__host__ __device__ static int getObjectCount()
 	{

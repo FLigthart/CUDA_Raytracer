@@ -36,9 +36,7 @@ __device__ bool quad::checkIntersection(Ray& ray, interval hitRange, HitInformat
 
 	// No hit if the ray is parallel to the plane
 	if (abs(denom) < VERY_SMALL_NUMBER)
-	{
 		return false;
-	}
 
 	// No hit if the hit point parameter t is outside the ray interval
 	float t = (D - dot(normal, ray.origin())) / denom;
@@ -60,7 +58,7 @@ __device__ bool quad::checkIntersection(Ray& ray, interval hitRange, HitInformat
 	hitInformation.distance = t;
 	hitInformation.position = intersection;
 	hitInformation.mat = mat;
-	hitInformation.normal = normal;
+	hitInformation.normal = getFaceNormal(ray, normal);
 
 	return true;
 }

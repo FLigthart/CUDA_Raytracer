@@ -35,7 +35,7 @@ __global__ void initializeBasicSpheres(Shape** d_shapeList, bvhNode* d_bvhTree, 
         bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
         *d_camera = Camera(vec3(0.0f, 1.5f, -3.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 90.0f),
-            45.0f, pX, pY, AAMethod::MSAA100, 5.0f, 0.0f); // standard camera
+            45.0f, pX, pY, AAMethod::MSAA100, 5.0f, 0.0f, color4::standardBackground()); // standard camera
     }
 }
 

@@ -23,7 +23,7 @@ __global__ void initializeCheckeredScene(Shape** d_shapeList, bvhNode* d_bvhTree
 	bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
 	*d_camera = Camera(vec3(13.f, 1.f, 0.f), vec3(0.f, 1.f, 0.f), vec2(-5.f, 180.0f),
-		20.0f, pX, pY, AAMethod::MSAA100, 10.0f, 0.05f);
+		20.0f, pX, pY, AAMethod::MSAA100, 10.0f, 0.05f, color4::standardBackground());
 }
 
 void checkeredSphereScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY,

@@ -4,11 +4,14 @@
 #include <string>
 
 #include "../public/bvh/bvh.h"
+#include "../public/lights/diffuseLight.h"
 #include "../public/scenes/basicSphereScenes.h"
 #include "../public/scenes/checkeredSphereScene.h"
+#include "../public/scenes/cornellBoxScene.h"
 #include "../public/scenes/perlinSphereScene.h"
 #include "../public/scenes/quadsScene.h"
 #include "../public/scenes/randomSpheresScene.h"
+#include "../public/scenes/simpleLightScene.h"
 
 using namespace std;
 
@@ -28,14 +31,6 @@ using namespace std;
 #include "../public/materials/material.h"
 
 //WARNING: Generate Relocatable Device Code = Yes in CUDA C++ Settings. Otherwise, camera.h and camera.cu won't compile. Might cause weird behaviour.
-
-__device__ color4 calculateBackgroundColor(const Ray& r)
-{
-    vec3 normalizedDirection = r.direction().normalized();
-    float t = 0.5f * (normalizedDirection.y() + 1.0f);
-    vec3 rgb = (1.0f - t) * vec3::one() + t * vec3(0.5f, 0.7f, 1.0f);
-    return color4(rgb.x(), rgb.y(), rgb.z(), 1.0f);
-}
 
 __global__ void randomInitialize(curandState* randomState)
 {
@@ -58,40 +53,38 @@ __global__ void renderInitialize(int sX, int sY, curandState* randomState)  // I
     curand_init(2024, pixelIndex, 0, &randomState[pixelIndex]);
 }
 
-__device__ color4 colorPerSample(Ray& r, bvhNode* world, curandState* localRandomState)
+__device__ color4 colorPerSample(Ray& r, bvhNode* world, Camera* camera, curandState* localRandomState)
 {
     Ray currentRay = r;
     color4 currentAttenuation = color4::white();   // This decreases for each bounce. Making each bounce have less impact.
+    color4 finalColor = color4::black();
 
     for (int i = 0; i < 50; i++) // For each pixel, cast 50 random rays.
     {
         HitInformation hitInformation;
 
-        if (bvhNode::checkIntersection(world, currentRay, interval(0.001f, INFINITY), hitInformation))
+        // Hit nothing. Return background color.
+        if (!bvhNode::checkIntersection(world, currentRay, interval(0.001f, INFINITY), hitInformation))
         {
-            Ray scattered;
-            color4 attenuation; // attenuation for each object the ray bounces to.
+            finalColor += camera->background * currentAttenuation;
+            return finalColor;
+        }
 
-            if (hitInformation.mat->scatter(currentRay, hitInformation, attenuation, localRandomState, scattered))
-            {
-                currentAttenuation *= attenuation;
-                currentRay = scattered;
-            }
-            else
-            {
-                return color4::black();
-            }
-            
-            //return 0.5f * color4(hitInformation.normal.x() + 1.0f, hitInformation.normal.y() + 1.0f, hitInformation.normal.z() + 1.0f, 1.0f); //Display normals color
-        }
-        else
+        Ray scattered;
+        color4 attenuation; // attenuation for each object the ray bounces to.
+
+        if (!hitInformation.mat->scatter(currentRay, hitInformation, attenuation, localRandomState, scattered))
         {
-            color4 color = currentAttenuation * calculateBackgroundColor(currentRay);
-            return color;
+            color4 colorFromEmission = hitInformation.mat->emitted(hitInformation.u, hitInformation.v, hitInformation.position);
+            finalColor += colorFromEmission * currentAttenuation;
+            return finalColor;
         }
+
+        currentAttenuation *= attenuation;
+        currentRay = scattered;
     }
 
-    return color4::black(); // 0 0 0 1 values
+    return finalColor;
 }
 
 __device__ vec3 colorForPixel(bvhNode* world, Camera* camera, int pixelStartX, int pixelStartY, curandState* localRandomState, int sampleSize)
@@ -106,7 +99,7 @@ __device__ vec3 colorForPixel(bvhNode* world, Camera* camera, int pixelStartX, i
 
         Ray r = camera->makeRay(u, v, localRandomState);
 
-        color += colorPerSample(r, world, localRandomState);
+        color += colorPerSample(r, world, camera, localRandomState);
     }
 
     vec3 rgbValues = color.getRGB() /= static_cast<float>(sampleSize);
@@ -270,7 +263,7 @@ int main()
     checkCudaErrors(cudaDeviceSynchronize());
 
     // Different scenes the user can choose out of.
-    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres", "Perlin Spheres", "Quads"};
+    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres", "Perlin Spheres", "Quads", "Simple Light", "Cornell Box"};
 
     int worldTypeIndex = askUserForWorldType(worlds);
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
@@ -289,28 +282,38 @@ int main()
 	{
 	    case 1:
 	        basicSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
-                d_camera, pX, pY, listSize, treeSize);
+	            d_camera, pX, pY, listSize, treeSize);
 	        break;
 
-        case 2:
-            randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
-                d_camera, pX, pY, randomSeed, listSize, treeSize);
-            break;
+	    case 2:
+	        randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
+	            d_camera, pX, pY, randomSeed, listSize, treeSize);
+	        break;
 
 		case 3:
 			checkeredSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-            d_camera, pX, pY, listSize, treeSize);
+	        d_camera, pX, pY, listSize, treeSize);
     		break;
 
 	    case 4:
 	        perlinSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-                d_camera, pX, pY, randomSeed, listSize, treeSize);
-            break;
+	            d_camera, pX, pY, randomSeed, listSize, treeSize);
+	        break;
 
 	    case 5:
 	        quadsScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-            d_camera, pX, pY, listSize, treeSize);
+	            d_camera, pX, pY, listSize, treeSize);
 		    break;
+
+	    case 6:
+	        simpleLightScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+	            d_camera, pX, pY, listSize, treeSize, randomSeed);
+            break;
+
+        case 7:
+            cornellBoxScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+                d_camera, pX, pY, listSize, treeSize, randomSeed);
+            break;
 
 	    default:
             exit(1);

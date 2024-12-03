@@ -4,6 +4,7 @@
 #define CAMERA_H
 
 #include "ray.h"
+#include "structs/color4.h"
 #include "structs/vec2.h"
 #include "structs/vec3.h"
 
@@ -16,7 +17,8 @@ class Camera
 public:
 
     Camera() = default;
-    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec2& direction, float _fov, int pX, int pY, AAMethod _aaMethod, float _focusDistance, float _aperture)
+    __host__ __device__ Camera(const vec3& position, const vec3& up, const vec2& direction,
+        float _fov, int pX, int pY, AAMethod _aaMethod, float _focusDistance, float _aperture, color4 backgroundColor)
     {
 	    _lookFrom = position;
     	_lookUp = up;
@@ -32,17 +34,10 @@ public:
         focusDistance = _focusDistance;
         lensRadius = _aperture / 2.0f;
 
+        background = backgroundColor;
+
         initialize(); // Calculate other member variables at the end of the constructor.
     }
-
-    int screenX;
-    int screenY;
-
-    AAMethod aaMethod;
-
-    float lensRadius;
-    float focusDistance;
-
 
     __device__ Ray makeRay(float u, float v, curandState* randomState) const;
 
@@ -74,13 +69,22 @@ public:
         return vec3(cross(_lookUp, _lookDirection).normalized());
     }
 
-    __host__ __device__ float getFOV() const { return fov; } 
+    __host__ __device__ float getFOV() const { return fov; }
     __host__ __device__ void setFOV(float _fov)
     {
         fov = validateFOV(_fov);
         initialize();
     }
 
+    int screenX;
+    int screenY;
+
+    AAMethod aaMethod;
+
+    float lensRadius;
+    float focusDistance;
+
+    color4 background;
 
 private:
 
