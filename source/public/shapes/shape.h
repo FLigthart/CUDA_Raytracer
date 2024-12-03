@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "../util.h"
 #include "../materials/lambertian.h"
 #include "../structs/ShapeTransform.h"
 #include "../structs/hitInformation.h"

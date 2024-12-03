@@ -9,7 +9,7 @@
 #include "structs/vec3.h"
 
 enum AAMethod : std::uint8_t
-{ None, MSAA10, MSAA20, MSAA50, MSAA100, MSAA1000 };
+{ None, MSAA10, MSAA20, MSAA50, MSAA100, MSAA1000, MSAA10000, MSAA100000 };
 
 class Camera
 {

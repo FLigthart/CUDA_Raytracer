@@ -18,15 +18,17 @@ __global__ void initializeCornellBoxScene(Shape** d_shapeList, bvhNode* d_bvhTre
 	d_shapeList[1] = new quad(vec3(0.0f, 277.5f, 277.5f), vec3(0.0f, 555.0f, 0.0f), vec3(0.0f, 0.0f, 555.0f), red); // Left
 	d_shapeList[2] = new quad(vec3(277.5f, 0.0f, 277.5f), vec3(555.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 555.0f), white); // Bottom
 	d_shapeList[3] = new quad(vec3(277.5f, 555.0f, 277.5f), vec3(-555.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -555.0f), white); //Top
-	d_shapeList[4] = new quad(vec3(277.5f, 277.5f, 555.0f), vec3(555.0f, 0.0f, 0.001f), vec3(0.0f, 555.0f, 0.001f), white); //Back
+	d_shapeList[4] = new quad(vec3(277.5f, 277.5f, 555.0f), vec3(555.0f, 0.0f, 0.0f), vec3(0.0f, 555.0f, 0.01f), white); //Back
 
 	d_shapeList[5] = new quad(vec3(277.5f, 554.0f, 277.5f), vec3(-130.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -105.0f), light); // Box Light
 
+	d_shapeList[6] = new box(vec3(130.0f, 0.0f, 65.0f), vec3(295.0f, 165.0f, 230.0f), white);
+	d_shapeList[7] = new box(vec3(265.0f, 0.0f, 295.0f), vec3(430.0f, 330.0f, 460.0f), white);
+
 	bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
-	// When the front vector of the camera is perpendicular to the normal of a primitive, the primitive will not render. Should fix, but tilting primitive slightly works for now.
 	*d_camera = Camera(vec3(277.5f, 277.5f, -800.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f),
-		45.0f, pX, pY, AAMethod::MSAA1000, 5.0f, 0.0f, color4::black());
+		40.0f, pX, pY, AAMethod::MSAA10000, 5.0f, 0.0f, color4::black());
 }
 
 void cornellBoxScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera,

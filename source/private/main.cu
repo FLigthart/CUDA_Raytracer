@@ -67,7 +67,7 @@ __device__ color4 colorPerSample(Ray& r, bvhNode* world, Camera* camera, curandS
         if (!bvhNode::checkIntersection(world, currentRay, interval(0.001f, INFINITY), hitInformation))
         {
             finalColor += camera->background * currentAttenuation;
-            return finalColor;
+            break;
         }
 
         Ray scattered;
@@ -77,7 +77,7 @@ __device__ color4 colorPerSample(Ray& r, bvhNode* world, Camera* camera, curandS
         {
             color4 colorFromEmission = hitInformation.mat->emitted(hitInformation.u, hitInformation.v, hitInformation.position);
             finalColor += colorFromEmission * currentAttenuation;
-            return finalColor;
+            break;
         }
 
         currentAttenuation *= attenuation;
@@ -145,6 +145,14 @@ __global__ void render(vec3* fb, Camera* camera, bvhNode* world, curandState* ra
 
 	    case MSAA1000:
 	        sampleSize = 1000;
+	        break;
+
+	    case MSAA10000:
+	        sampleSize = 10000;
+	        break;
+
+	    case MSAA100000:
+	        sampleSize = 100000;
 	        break;
 
 	    default: // No AA/Non-added methods

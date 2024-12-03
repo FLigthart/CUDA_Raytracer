@@ -44,7 +44,7 @@ public:
 		return x;
 	}
 
-	__host__ __device__ bool checkIntersection (const Ray& ray, interval rayT) const
+	__device__ bool checkIntersection(const Ray& ray, interval rayT) const
 	{
 		const vec3& rayOrigin = ray.origin();
 		const vec3& rayDirection = ray.direction();

@@ -23,7 +23,7 @@ public:
 
 private:
 
-	static constexpr int objectCount = 6;
+	static constexpr int objectCount = 8;
 };
 
 #endif

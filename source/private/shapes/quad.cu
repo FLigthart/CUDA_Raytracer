@@ -62,3 +62,51 @@ __device__ bool quad::checkIntersection(Ray& ray, interval hitRange, HitInformat
 
 	return true;
 }
+
+/*
+ *	Box Functions
+ */
+
+__device__ box::box(const vec3& a, const vec3& b, material* mat)
+{
+	vec3 min = vec3(fmin(a.x(), b.x()), fmin(a.y(), b.y()), fmin(a.z(), b.z()));
+	vec3 max = vec3(fmax(a.x(), b.x()), fmax(a.y(), b.y()), fmax(a.z(), b.z()));
+
+	vec3 dx = vec3(max.x() - min.x(), 0.1f, 0.0f);
+	vec3 dy = vec3(0.0f, max.y() - min.y(), 0.1f);
+	vec3 dz = vec3(0.1f, 0, max.z() - min.z());
+
+	sides[0] = quad(vec3(min.x(), min.y(), max.z()) + dx * 0.5f + dy * 0.5f, dx, dy, mat);  // front
+	sides[1] = quad(vec3(max.x(), min.y(), max.z()) - dz * 0.5f + dy * 0.5f, -dz, dy, mat); // right
+	sides[2] = quad(vec3(max.x(), min.y(), min.z()) - dx * 0.5f + dy * 0.5f, -dx, dy, mat); // back
+	sides[3] = quad(vec3(min.x(), min.y(), min.z()) + dz * 0.5f + dy * 0.5f, dz, dy, mat);  // left
+	sides[4] = quad(vec3(min.x(), max.y(), max.z()) + dx * 0.5f - dz * 0.5f, dx, -dz, mat); // top
+	sides[5] = quad(vec3(min.x(), min.y(), min.z()) + dx * 0.5f + dz * 0.5f, dx, dz, mat);  // bottom
+
+	bbox = aabb(min, max);
+}
+
+__device__ box::~box()
+{
+	delete[] sides;
+	delete mat;
+}
+
+__device__ bool box::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const
+{
+	HitInformation tempHitInformation;
+	bool hitAnything = false;
+	float closestSoFar = hitRange.max;
+
+	for (const quad& side : sides)
+	{
+		if (side.checkIntersection(ray, interval(hitRange.min, closestSoFar), tempHitInformation))
+		{
+			hitAnything = true;
+			closestSoFar = tempHitInformation.distance;
+			hitInformation = tempHitInformation;
+		}
+	}
+
+	return hitAnything;
+}
