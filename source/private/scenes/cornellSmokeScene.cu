@@ -20,7 +20,7 @@ __global__ void initializeCornellSmokeScene(Shape** d_shapeList, bvhNode* d_bvhT
 	d_shapeList[3] = new quad(vec3(277.5f, 555.0f, 277.5f), vec3(-555.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -555.0f), white); //Top
 	d_shapeList[4] = new quad(vec3(277.5f, 277.5f, 555.0f), vec3(555.0f, 0.0f, 0.0f), vec3(0.0f, 555.0f, 0.01f), white); //Back
 
-	d_shapeList[5] = new quad(vec3(277.5f, 554.0f, 277.5f), vec3(-130.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -105.0f), light); // Box Light
+	d_shapeList[5] = new quad(vec3(277.5f, 554.0f, 277.5f), vec3(-260.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -210.0f), light); // Box Light
 
 	Shape* boxOne = new box(vec3(0.0f, 0.0f, 0.0f), vec3(165.0f, 165.0f, 165.0f), white);
 	boxOne = new rotateY(boxOne, -18);
@@ -35,7 +35,7 @@ __global__ void initializeCornellSmokeScene(Shape** d_shapeList, bvhNode* d_bvhT
 	bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
 	*d_camera = Camera(vec3(277.5f, 277.5f, -800.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 90.0f),
-		40.0f, pX, pY, AAMethod::MSAA1000, 5.0f, 0.0f, color4::black());
+		40.0f, pX, pY, AAMethod::MSAA10000, 5.0f, 0.0f, color4::black());
 }
 
 void cornellSmokeScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera, int pX, int pY,
