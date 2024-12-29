@@ -31,7 +31,7 @@ public:
 		setBoundingBox();
 	}
 
-	__device__ bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const override;
+	__device__ bool checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation, curandState* localRandomState) const override;
 	__device__ aabb boundingBox() const override { return bbox; }
 
 private:

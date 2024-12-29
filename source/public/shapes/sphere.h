@@ -41,7 +41,7 @@ public:
 		bbox = aabb(box0, box1);
 	}
 
-	__device__ bool checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation) const override;
+	__device__ bool checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation, curandState* localRandomState) const override;
 
 	__device__ static void getSphereUv(const vec3& point, float& u, float& v);
 

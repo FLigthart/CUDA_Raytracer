@@ -2,7 +2,7 @@
 
 #include "../../public/util.h"
 
-__device__ bool triangle::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const
+__device__ bool triangle::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation, curandState* localRandomState) const
 {
 	float distance = dot(a - ray.origin(), normal) / dot(ray.direction(), normal);
 

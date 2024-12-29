@@ -62,7 +62,7 @@ public:
 				if (t0 > rayT.min) rayT.min = t0;
 				if (t1 < rayT.max) rayT.max = t1;
 			}
-			else 
+			else
 			{
 				if (t1 > rayT.min) rayT.min = t1;
 				if (t0 < rayT.max) rayT.max = t0;
@@ -90,10 +90,20 @@ public:
 		if (x.size() < delta) x = x.expand(delta);
 		if (y.size() < delta) y = y.expand(delta);
 		if (z.size() < delta) z = z.expand(delta);
- 	}
+	}
 
 	__host__ __device__ static aabb empty() { return aabb(interval::empty(), interval::empty(), interval::empty()); }
 	__host__ __device__ static aabb universe() { return aabb(interval::universe(), interval::universe(), interval::universe()); }
 };
+
+__device__ inline aabb operator+(const aabb& bbox, const vec3& offset)
+{
+	return aabb(bbox.x + offset.x(), bbox.y + offset.y(), bbox.z + offset.z());
+}
+
+__device__ inline aabb operator+(const vec3& offset, const aabb& bbox)
+{
+	return bbox + offset;
+}
 
 #endif

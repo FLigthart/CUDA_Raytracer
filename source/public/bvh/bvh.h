@@ -33,7 +33,7 @@ struct bvhNode : bvhDataNode
 
 	__device__ static void prefillNodes(bvhNode* nodes, Shape** shapes, int listSize);
 
-	__device__ static bool checkIntersection(const bvhNode* nodes, Ray& ray, interval hitRange, HitInformation& hitInformation);
+	__device__ static bool checkIntersection(const bvhNode* nodes, Ray& ray, interval hitRange, HitInformation& hitInformation, curandState* localRandomState);
 
 	__host__ static int buildTree(bvhNode* nodes, int size);
 };

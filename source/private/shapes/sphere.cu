@@ -2,7 +2,7 @@
 
 #include <math_constants.h>
 
-__device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation) const
+__device__ bool Sphere::checkIntersection(Ray& ray, interval hitInterval, HitInformation& hitInformation, curandState* localRandomState) const
 {
 	// Calculate A, B and C for quadratic equation.
 	vec3 currentCenter = transform.position.at(ray.time());

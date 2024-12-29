@@ -64,4 +64,14 @@ public:
 	__host__ __device__ static interval universe() { return interval(-INFINITY, INFINITY); }
 };
 
+__device__ inline interval operator+(const interval& iv, float displacement)
+{
+	return interval(iv.min + displacement, iv.max + displacement);
+}
+
+__device__ inline interval operator+(float displacement, const interval& iv)
+{
+	return iv + displacement;
+}
+
 #endif

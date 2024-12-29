@@ -27,7 +27,7 @@ __device__ bool quad::isInterior(float a, float b, HitInformation& hitInformatio
 	return true;
 }
 
-__device__ bool quad::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const
+__device__ bool quad::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation, curandState* localRandomState) const
 {
 	vec3 Q = GetQ();
 	float D = dot(normal, Q);
@@ -92,7 +92,7 @@ __device__ box::~box()
 	delete mat;
 }
 
-__device__ bool box::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation) const
+__device__ bool box::checkIntersection(Ray& ray, interval hitRange, HitInformation& hitInformation, curandState* localRandomState) const
 {
 	HitInformation tempHitInformation;
 	bool hitAnything = false;
@@ -100,7 +100,7 @@ __device__ bool box::checkIntersection(Ray& ray, interval hitRange, HitInformati
 
 	for (const quad& side : sides)
 	{
-		if (side.checkIntersection(ray, interval(hitRange.min, closestSoFar), tempHitInformation))
+		if (side.checkIntersection(ray, interval(hitRange.min, closestSoFar), tempHitInformation, localRandomState))
 		{
 			hitAnything = true;
 			closestSoFar = tempHitInformation.distance;

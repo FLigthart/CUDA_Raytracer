@@ -161,7 +161,7 @@ __host__ int bvhNode::buildTree(bvhNode* nodes, int size)
 	return treeHeight;
 }
 
-__device__ bool bvhNode::checkIntersection(const bvhNode* nodes, Ray& ray, interval hitRange, HitInformation& hitInformation)
+__device__ bool bvhNode::checkIntersection(const bvhNode* nodes, Ray& ray, interval hitRange, HitInformation& hitInformation, curandState* localRandomState)
 {
 	int stack[MAX_TREE_HEIGHT];
 	int stackPtr = 0;
@@ -179,7 +179,7 @@ __device__ bool bvhNode::checkIntersection(const bvhNode* nodes, Ray& ray, inter
 		{
 			if (node.left == -1 && node.right == -1)
 			{
-				if (node.obj->checkIntersection(ray, hitRange, hitInformation))
+				if (node.obj->checkIntersection(ray, hitRange, hitInformation, localRandomState))
 				{
 					hitAnything = true;
 					hitRange = interval(hitRange.min, hitInformation.distance);

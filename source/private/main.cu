@@ -8,6 +8,7 @@
 #include "../public/scenes/basicSphereScenes.h"
 #include "../public/scenes/checkeredSphereScene.h"
 #include "../public/scenes/cornellBoxScene.h"
+#include "../public/scenes/cornellSmokeScene.h"
 #include "../public/scenes/perlinSphereScene.h"
 #include "../public/scenes/quadsScene.h"
 #include "../public/scenes/randomSpheresScene.h"
@@ -64,7 +65,7 @@ __device__ color4 colorPerSample(Ray& r, bvhNode* world, Camera* camera, curandS
         HitInformation hitInformation;
 
         // Hit nothing. Return background color.
-        if (!bvhNode::checkIntersection(world, currentRay, interval(0.001f, INFINITY), hitInformation))
+        if (!bvhNode::checkIntersection(world, currentRay, interval(0.001f, INFINITY), hitInformation, localRandomState))
         {
             finalColor += camera->background * currentAttenuation;
             break;
@@ -271,7 +272,7 @@ int main()
     checkCudaErrors(cudaDeviceSynchronize());
 
     // Different scenes the user can choose out of.
-    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres", "Perlin Spheres", "Quads", "Simple Light", "Cornell Box"};
+    std::vector<std::string> worlds = { "Basic Spheres", "Random Spheres", "Checkered Spheres", "Perlin Spheres", "Quads", "Simple Light", "Cornell Box", "Cornell Smoke"};
 
     int worldTypeIndex = askUserForWorldType(worlds);
     std::cout << worlds[worldTypeIndex - 1] << " selected.\n";
@@ -288,43 +289,48 @@ int main()
 
     switch (worldTypeIndex)
 	{
-	    case 1:
-	        basicSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
-	            d_camera, pX, pY, listSize, treeSize);
-	        break;
+    case 1:
+        basicSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
+            d_camera, pX, pY, listSize, treeSize);
+        break;
 
-	    case 2:
-	        randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
-	            d_camera, pX, pY, randomSeed, listSize, treeSize);
-	        break;
+    case 2:
+        randomSpheresScene::createScene(d_shapeList, h_bhvTree, d_bhvTree, 
+            d_camera, pX, pY, randomSeed, listSize, treeSize);
+        break;
 
-		case 3:
-			checkeredSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-	        d_camera, pX, pY, listSize, treeSize);
-    		break;
+	case 3:
+		checkeredSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+        d_camera, pX, pY, listSize, treeSize);
+    	break;
 
-	    case 4:
-	        perlinSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-	            d_camera, pX, pY, randomSeed, listSize, treeSize);
-	        break;
+    case 4:
+        perlinSphereScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+            d_camera, pX, pY, randomSeed, listSize, treeSize);
+        break;
 
-	    case 5:
-	        quadsScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-	            d_camera, pX, pY, listSize, treeSize);
-		    break;
+    case 5:
+        quadsScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+            d_camera, pX, pY, listSize, treeSize);
+	    break;
 
-	    case 6:
-	        simpleLightScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-	            d_camera, pX, pY, listSize, treeSize, randomSeed);
-            break;
+    case 6:
+        simpleLightScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+            d_camera, pX, pY, listSize, treeSize, randomSeed);
+        break;
 
-        case 7:
-            cornellBoxScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
-                d_camera, pX, pY, listSize, treeSize, randomSeed);
-            break;
+    case 7:
+        cornellBoxScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+            d_camera, pX, pY, listSize, treeSize, randomSeed);
+        break;
 
-	    default:
-            exit(1);
+	case 8:
+        cornellSmokeScene::createScene(d_shapeList, h_bhvTree, d_bhvTree,
+            d_camera, pX, pY, listSize, treeSize, randomSeed);
+        break;
+
+    default:
+        exit(1);
     }
 
     checkCudaErrors(cudaGetLastError());
