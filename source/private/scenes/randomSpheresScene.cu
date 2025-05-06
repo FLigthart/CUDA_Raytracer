@@ -54,7 +54,7 @@ __global__ void initializeRandomScene(Shape** d_shapeList, bvhNode* d_bvhTree, C
         bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
         *d_camera = Camera(vec3(13.0f, 1.5f, -6.0f), vec3(0.0f, 1.0f, 0.0f),
-            vec2(-12.0f, 155.0f), 30.0f, pX, pY, AAMethod::MSAA100,
+            vec2(-12.0f, 155.0f), 30.0f, pX, pY, AAMethod::MSAA10000,
             10.0f, 0.05f, color4::standardBackground());
     }
 }

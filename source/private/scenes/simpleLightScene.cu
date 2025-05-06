@@ -28,7 +28,7 @@ __global__ void initializeSimpleLightScene(Shape** d_shapeList, bvhNode* d_bvhTr
 		bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
 		*d_camera = Camera(vec3(26.0f, 3.0f, 6.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-15.0f, 180.0f),
-			45.0f, pX, pY, AAMethod::MSAA1000, 5.0f, 0.0f, color4::black());
+			45.0f, pX, pY, AAMethod::MSAA10000, 5.0f, 0.0f, color4::black());
 	}
 }
 void simpleLightScene::createScene(Shape**& d_shapeList, bvhNode*& h_bvhTree, bvhNode*& d_bvhTree, Camera*& d_camera,

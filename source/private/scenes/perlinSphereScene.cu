@@ -24,7 +24,7 @@ __global__ void initializePerlinSpheres(Shape** d_shapeList, bvhNode* d_bvhTree,
 		bvhNode::prefillNodes(d_bvhTree, d_shapeList, objectCount);
 
 		*d_camera = Camera(vec3(0.0f, 1.0f, -7.0f), vec3(0.0f, 1.0f, 0.0f), vec2(-5.0f, 70.0f),
-			45.0f, pX, pY, AAMethod::MSAA100, 3.0f, 0.0f, color4::standardBackground()); // standard camera
+			45.0f, pX, pY, AAMethod::MSAA10000, 3.0f, 0.0f, color4::standardBackground()); // standard camera
 	}
 }
 

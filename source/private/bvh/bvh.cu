@@ -142,7 +142,7 @@ __host__ int bvhNode::buildTree(bvhNode* nodes, int size)
 	std::clog << "bvh tree linearized" << std::endl;
 
 	std::clog << "size of nodes: " << linearizedNodes.size() << std::endl; // should be "size"
-	std::clog << "original size: " << size << std::endl;                    // should be "size"
+	std::clog << "original size: " << size << std::endl;                   // should be "size"
 	std::clog << "tree height: " << treeHeight << std::endl;
 
 	if (treeHeight > MAX_TREE_HEIGHT)
@@ -154,9 +154,9 @@ __host__ int bvhNode::buildTree(bvhNode* nodes, int size)
 
 	for (int i = 0; i < linearizedNodes.size(); i++)
 	{
-		std::cout << "node " << i << " left: " << linearizedNodes[i].left << ", right: " << linearizedNodes[i].right << std::endl;
 		nodes[i] = linearizedNodes[i];
 	}
+
 	std::clog << "bvh tree copied back" << std::endl;
 	return treeHeight;
 }
