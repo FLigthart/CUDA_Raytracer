@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef INTErVAL_H
+#ifndef INTERVAL_H
 #define INTERVAL_H
 
 #include <cmath>
