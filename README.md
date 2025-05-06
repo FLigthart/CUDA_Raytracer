@@ -11,6 +11,12 @@ The program first asks the user for a scene, then it raytracer that scene on the
 * Lights: There are diffuse lights. Diffuse lights are essentially materials that emit light into the scene.
 * Motion: The (still) scenes can immitate basic motion by assigning two positions to the object. The object will get blurry, as if it were moving between these positions at that frame.
 
+![My raytracer's Cornell Box render](readmeImages/CornellBox.png)
+![My raytracer's Random Sphere Scene render](readmeImages/RandomSpheresMotion.png)
+![My raytracer's Simple Light Scene render](readmeImages/Lights.png)
+![My raytracer's Perlin Texture Scene render](readmeImages/PerlinSpheres.png)
+![My raytracer's Image Texture Scene render](readmeImages/EarthScene.png)
+
 ## Running the project
 You will need to have a version of the CUDA Toolkit installed. Then, you select the toolkit in the project settings. For Visual Studio 2022, you can do this by going to Project -> Properties -> CUDA C/C++ Common -> CUDA Toolkit Custom Dir.
 At this setting, select the path to CUDA\*your installed version*.
